@@ -1,4 +1,4 @@
-# Rust WASM RPN Calculator
+# Post_Fix_Pro
 
 A browser-based Reverse Polish Notation (RPN) calculator with:
 
@@ -11,13 +11,13 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 
 - Core calculator logic is implemented in Rust (`src/lib.rs`)
 - API + wasm bindings are exposed from `src/api.rs`
-- `index.html` hosts the UI and calls wasm methods
+- `Post_Fix_Pro.html` hosts the UI and calls wasm methods
 - `dist/` can be zipped and shared as a standalone package
 
 ## Repository Layout
 
 - `src/` Rust calculator engine and API bindings
-- `index.html` main application UI
+- `Post_Fix_Pro.html` main application UI
 - `scripts/build_wasm.sh` production build + distribution packaging
 - `docs/build_notes/` milestone notes by version
 - `docs/wasm_build.md` build and distribution notes
@@ -41,7 +41,7 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 This generates/refreshes:
 
 - `pkg/` wasm bindings
-- `dist/index.html`
+- `dist/Post_Fix_Pro.html`
 - `dist/pkg/`
 - `dist/wasm_base64.js`
 - `dist/help.md`
@@ -51,12 +51,12 @@ This generates/refreshes:
 
 Primary flow:
 
-1. Open `dist/index.html` in your browser.
+1. Open `dist/Post_Fix_Pro.html` in your browser.
 
 Fallback for stricter browser file policies:
 
 1. Start a static server in `dist/`.
-2. Open the served `index.html`.
+2. Open the served `Post_Fix_Pro.html`.
 
 Example server command:
 
@@ -70,7 +70,7 @@ Then browse to: `http://localhost:8000`
 ## Development Loop
 
 - Edit Rust engine/API files in `src/`
-- Edit UI in `index.html`
+- Edit UI in `Post_Fix_Pro.html`
 - Run tests:
 
 ```bash
@@ -91,4 +91,4 @@ cargo test
 
 ## License
 
-No license is currently declared in `Cargo.toml`.
+MIT. See [LICENSE](LICENSE).

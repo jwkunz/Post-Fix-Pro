@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rust WASM RPN Calculator</title>
+  <title>Post_Fix_Pro</title>
   <style>
     :root {
       --bg-0: #0a0d14;
@@ -26,6 +26,10 @@
 
     * {
       box-sizing: border-box;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     body {
@@ -88,6 +92,19 @@
       word-break: break-all;
       min-height: 32px;
       text-shadow: 0 0 10px rgba(99, 182, 255, 0.25);
+      cursor: text;
+    }
+
+    .entry-edit {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: #f5fbff;
+      background: #0f1525;
+      font-size: clamp(22px, 5.4vw, 28px);
+      line-height: 1.2;
+      font-family: "Courier New", monospace;
     }
 
     .error {
@@ -533,7 +550,7 @@
 
     <section class="panel">
       <div class="status-row">
-        <strong>Rust WASM RPN</strong>
+        <strong>Post_Fix_Pro</strong>
         <div class="status-actions">
           <button class="fn help-btn" id="help-open-btn" type="button">Help</button>
           <span id="angle-indicator" class="status-chip">RAD</span>
@@ -541,6 +558,7 @@
       </div>
       <div class="display">
         <div id="entry-display" class="entry">0</div>
+        <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false" autocomplete="off" aria-label="Scalar entry edit">
         <div id="error-display" class="error ok"></div>
       </div>
       <p class="keypad-guide">RPN flow: build number -> <code>Enter</code> -> apply operation.</p>
@@ -759,6 +777,7 @@
   <script src="./wasm_base64.js"></script>
   <script>
     const entryDisplay = document.getElementById("entry-display");
+    const entryEditInput = document.getElementById("entry-edit-input");
     const errorDisplay = document.getElementById("error-display");
     const angleIndicator = document.getElementById("angle-indicator");
     const stackList = document.getElementById("stack-list");
@@ -801,6 +820,7 @@
     let pendingCommand = null;
     let hypMode = false;
     let helpLoaded = false;
+    let isEntryEditing = false;
 
     function setError(message) {
       if (!message) {
@@ -843,7 +863,9 @@
 
     function renderState(state) {
       lastState = state;
-      entryDisplay.textContent = state.entry_buffer || "0";
+      if (!isEntryEditing) {
+        entryDisplay.textContent = state.entry_buffer || "0";
+      }
       angleIndicator.textContent = String(state.angle_mode || "rad").toUpperCase();
       stackList.innerHTML = "";
       const bottomFirst = [...(state.stack || [])];
@@ -919,6 +941,52 @@
       entryBuffer = candidate;
       syncEntry();
       return true;
+    }
+
+    function parseScalarEntryText(raw) {
+      const text = String(raw ?? "").trim();
+      if (!text) {
+        return { ok: true, value: "" };
+      }
+      if (!isValidEntryCandidate(text) || !/[0-9]/.test(text)) {
+        return { ok: false, error: `invalid scalar entry format: ${text}` };
+      }
+      const numeric = Number(text);
+      if (!Number.isFinite(numeric)) {
+        return { ok: false, error: `invalid scalar number: ${text}` };
+      }
+      return { ok: true, value: text };
+    }
+
+    function beginScalarEntryEdit() {
+      isEntryEditing = true;
+      const current = entryBuffer || (lastState?.entry_buffer ?? "");
+      entryEditInput.value = current;
+      entryDisplay.classList.add("hidden");
+      entryEditInput.classList.remove("hidden");
+      entryEditInput.focus();
+      entryEditInput.select();
+    }
+
+    function endScalarEntryEdit(cancel = false) {
+      if (!isEntryEditing) return;
+      if (!cancel) {
+        const parsed = parseScalarEntryText(entryEditInput.value);
+        if (!parsed.ok) {
+          setError(parsed.error);
+          entryEditInput.focus();
+          return;
+        }
+        entryBuffer = parsed.value;
+        syncEntry();
+      }
+      isEntryEditing = false;
+      entryEditInput.classList.add("hidden");
+      entryDisplay.classList.remove("hidden");
+      entryDisplay.textContent = entryBuffer || "0";
+      if (cancel) {
+        setError("");
+      }
     }
 
     function commitEntryIfNeeded() {
@@ -1371,6 +1439,29 @@
       handleAction(button.dataset.action);
     });
 
+    entryDisplay.addEventListener("click", () => {
+      beginScalarEntryEdit();
+    });
+
+    entryDisplay.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      beginScalarEntryEdit();
+    }, { passive: false });
+
+    entryEditInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        endScalarEntryEdit(false);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        endScalarEntryEdit(true);
+      }
+    });
+
+    entryEditInput.addEventListener("blur", () => {
+      endScalarEntryEdit(false);
+    });
+
     advancedActionPanels.forEach((panel) => {
       panel.addEventListener("click", (event) => {
         const button = event.target.closest("button");
@@ -1584,7 +1675,7 @@
         setError("");
       } catch (error) {
         runtimeHint.textContent =
-          "WASM runtime not found. Build with ./scripts/build_wasm.sh and open dist/index.html.";
+          "WASM runtime not found. Build with ./scripts/build_wasm.sh and open dist/Post_Fix_Pro.html.";
         setError("runtime unavailable");
         console.error(error);
         for (const button of document.querySelectorAll("button:not(#help-open-btn):not(#help-close-btn)")) {

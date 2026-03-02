@@ -14,8 +14,9 @@ wasm-pack build --target no-modules --out-dir pkg
 
 mkdir -p dist/pkg
 cp -r pkg/. dist/pkg/
-cp index.html dist/index.html
+cp Post_Fix_Pro.html dist/Post_Fix_Pro.html
 cp help.md dist/help.md
+rm -f dist/index.html
 
 WASM_PATH="dist/pkg/webcalculator_backend_bg.wasm"
 BASE64_PATH="dist/wasm_base64.js"
@@ -32,15 +33,15 @@ fi
 } > "${BASE64_PATH}"
 
 cat > dist/README.txt <<'EOF'
-Distribution folder for Rust WASM calculator.
+Distribution folder for Post_Fix_Pro.
 
-Open index.html directly in a browser.
+Open Post_Fix_Pro.html directly in a browser.
 If your browser blocks local file WASM execution, run a local static server from this folder.
 EOF
 
 echo "WASM build complete:"
 echo "  - pkg/ bindings generated (no-modules target)"
-echo "  - dist/index.html refreshed"
+echo "  - dist/Post_Fix_Pro.html refreshed"
 echo "  - dist/help.md copied"
 echo "  - dist/pkg/ copied"
 echo "  - dist/wasm_base64.js generated"
