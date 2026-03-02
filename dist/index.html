@@ -287,15 +287,21 @@
       <div class="keys" id="keypad">
         <button class="fn" data-action="set-rad">RAD</button>
         <button class="fn" data-action="set-deg">DEG</button>
-        <button class="fn" data-action="sin">sin</button>
-        <button class="fn" data-action="ln">ln</button>
-        <button class="fn" data-action="sqrt">sqrt</button>
+        <button class="fn" data-action="drop">drop</button>
+        <button class="fn" data-action="dup">dup</button>
+        <button class="fn" data-action="swap">swap</button>
 
         <button class="danger" data-action="clear-entry">CE</button>
         <button class="danger" data-action="clear-all">C</button>
         <button class="op" data-action="mul">*</button>
         <button class="op" data-action="div">/</button>
+        <button class="fn" data-action="rot">rot</button>
+
+        <button class="fn" data-action="sin">sin</button>
+        <button class="fn" data-action="ln">ln</button>
+        <button class="fn" data-action="sqrt">sqrt</button>
         <button class="fn" data-action="backspace">back</button>
+        <button class="fn" data-action="toggle-sign">+/-</button>
 
         <button data-digit="7">7</button>
         <button data-digit="8">8</button>
@@ -313,12 +319,12 @@
         <button data-digit="2">2</button>
         <button data-digit="3">3</button>
         <button class="fn" data-action="inverse">inv</button>
-        <button class="fn" data-action="toggle-sign">+/-</button>
+        <button class="fn" data-action="solve">solve</button>
 
         <button data-digit="0">0</button>
         <button data-action="decimal">.</button>
         <button class="op wide" data-action="enter">Enter</button>
-        <button class="fn" data-action="solve">solve</button>
+        <button class="fn" data-action="push-identity">I(n)</button>
       </div>
     </section>
 
@@ -581,8 +587,16 @@
         call("solve_ax_b");
         return;
       }
+      if (action === "push-identity") {
+        pushIdentityFromInput();
+        return;
+      }
 
       const opMap = {
+        drop: "drop",
+        dup: "dup",
+        swap: "swap",
+        rot: "rot",
         add: "add",
         sub: "sub",
         mul: "mul",
@@ -590,9 +604,9 @@
         sqrt: "sqrt",
         ln: "ln",
         sin: "sin",
-        det: "determinant",
         inverse: "inverse",
-        transpose: "transpose"
+        transpose: "transpose",
+        det: "determinant"
       };
       const method = opMap[action];
       if (!method) return;

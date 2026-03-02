@@ -139,6 +139,26 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn drop(&mut self) -> ApiResponse {
+        let result = self.calculator.drop().map(|_| ());
+        self.wrap(result)
+    }
+
+    pub fn dup(&mut self) -> ApiResponse {
+        let result = self.calculator.dup();
+        self.wrap(result)
+    }
+
+    pub fn swap(&mut self) -> ApiResponse {
+        let result = self.calculator.swap();
+        self.wrap(result)
+    }
+
+    pub fn rot(&mut self) -> ApiResponse {
+        let result = self.calculator.rot();
+        self.wrap(result)
+    }
+
     pub fn add(&mut self) -> ApiResponse {
         let result = self.calculator.add();
         self.wrap(result)
@@ -324,6 +344,22 @@ mod wasm {
 
         pub fn add(&mut self) -> String {
             serde_json::to_string(&self.inner.add()).expect("response serialization should succeed")
+        }
+
+        pub fn drop(&mut self) -> String {
+            serde_json::to_string(&self.inner.drop()).expect("response serialization should succeed")
+        }
+
+        pub fn dup(&mut self) -> String {
+            serde_json::to_string(&self.inner.dup()).expect("response serialization should succeed")
+        }
+
+        pub fn swap(&mut self) -> String {
+            serde_json::to_string(&self.inner.swap()).expect("response serialization should succeed")
+        }
+
+        pub fn rot(&mut self) -> String {
+            serde_json::to_string(&self.inner.rot()).expect("response serialization should succeed")
         }
 
         pub fn sub(&mut self) -> String {
@@ -517,6 +553,48 @@ mod tests {
                 cols: 2,
                 data: vec![1.0, 0.0, 0.0, 1.0]
             }]
+        );
+    }
+
+    #[test]
+    fn stack_utility_operations_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_real(1.0);
+        api.push_real(2.0);
+        api.push_real(3.0);
+
+        let swap_response = api.swap();
+        assert!(swap_response.ok);
+        assert_eq!(
+            swap_response.state.stack,
+            vec![
+                ApiValue::Real { value: 1.0 },
+                ApiValue::Real { value: 3.0 },
+                ApiValue::Real { value: 2.0 }
+            ]
+        );
+
+        let dup_response = api.dup();
+        assert!(dup_response.ok);
+        assert_eq!(
+            dup_response.state.stack,
+            vec![
+                ApiValue::Real { value: 1.0 },
+                ApiValue::Real { value: 3.0 },
+                ApiValue::Real { value: 2.0 },
+                ApiValue::Real { value: 2.0 }
+            ]
+        );
+
+        let drop_response = api.drop();
+        assert!(drop_response.ok);
+        assert_eq!(
+            drop_response.state.stack,
+            vec![
+                ApiValue::Real { value: 1.0 },
+                ApiValue::Real { value: 3.0 },
+                ApiValue::Real { value: 2.0 }
+            ]
         );
     }
 }
