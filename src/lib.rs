@@ -1455,4 +1455,129 @@ mod tests {
         );
         assert_eq!(calc.state().stack, before);
     }
+
+    #[test]
+    fn pow_real_values() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(2.0));
+        calc.push_value(Value::Real(3.0));
+
+        let result = calc.pow();
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(8.0)]);
+    }
+
+    #[test]
+    fn percent_real_values() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(200.0));
+        calc.push_value(Value::Real(15.0));
+
+        let result = calc.percent();
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(30.0)]);
+    }
+
+    #[test]
+    fn asin_in_degree_mode() {
+        let mut calc = Calculator::new();
+        calc.set_angle_mode(AngleMode::Deg);
+        calc.push_value(Value::Real(0.5));
+
+        let result = calc.asin();
+
+        assert_eq!(result, Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 30.0, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn hyperbolic_functions_real_values() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(1.0));
+        assert_eq!(calc.sinh(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 1.175_201_193_643_801_4, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+
+        calc.push_value(Value::Real(1.0));
+        assert_eq!(calc.cosh(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 1.543_080_634_815_243_7, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn log10_real_value() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(1000.0));
+
+        let result = calc.log10();
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(3.0)]);
+    }
+
+    #[test]
+    fn gamma_and_erf_real_values() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(5.0));
+        assert_eq!(calc.gamma(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 24.0, 1e-9),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+
+        calc.push_value(Value::Real(1.0));
+        assert_eq!(calc.erf(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 0.842_700_79, 1e-6),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn push_constants() {
+        let mut calc = Calculator::new();
+        calc.push_pi();
+        calc.push_e();
+
+        assert_eq!(calc.state().stack.len(), 2);
+        match &calc.state().stack[0] {
+            Value::Real(v) => assert_real_close(*v, std::f64::consts::PI, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+        match &calc.state().stack[1] {
+            Value::Real(v) => assert_real_close(*v, std::f64::consts::E, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn memory_store_recall_and_clear() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(42.0));
+
+        assert_eq!(calc.memory_store(0), Ok(()));
+        assert_eq!(calc.clear_all(), ());
+        assert_eq!(calc.memory_recall(0), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(42.0)]);
+        assert_eq!(calc.memory_clear(0), Ok(()));
+        assert_eq!(calc.memory_recall(0), Err(CalcError::EmptyRegister(0)));
+    }
+
+    #[test]
+    fn memory_invalid_register_error() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(1.0));
+        assert_eq!(calc.memory_store(26), Err(CalcError::InvalidRegister(26)));
+        assert_eq!(calc.memory_recall(99), Err(CalcError::InvalidRegister(99)));
+        assert_eq!(calc.memory_clear(999), Err(CalcError::InvalidRegister(999)));
+    }
 }
