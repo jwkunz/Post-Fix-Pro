@@ -43,10 +43,11 @@
     }
 
     .app {
-      width: min(1120px, 100%);
+      width: min(1180px, 100%);
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 14px;
+      align-items: start;
     }
 
     .panel {
@@ -101,7 +102,7 @@
 
     .keys {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -139,6 +140,10 @@
 
     button.wide {
       grid-column: span 2;
+    }
+
+    button.tall-3 {
+      grid-row: span 3;
     }
 
     .stack-title {
@@ -239,7 +244,7 @@
     .matrix-actions {
       display: grid;
       gap: 8px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .matrix-presets {
@@ -274,6 +279,16 @@
       padding-top: 12px;
       display: grid;
       gap: 8px;
+    }
+
+    .science-actions {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stack-panel {
+      grid-column: 1 / -1;
     }
 
     .complex-tools h3 {
@@ -322,12 +337,6 @@
       letter-spacing: 0.06em;
     }
 
-    @media (max-width: 1100px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-    }
-
     @media (max-width: 600px) {
       body {
         padding: 10px;
@@ -354,6 +363,10 @@
         grid-template-columns: 1fr;
       }
 
+      .science-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .matrix-presets {
         grid-template-columns: 1fr;
       }
@@ -374,6 +387,14 @@
 </head>
 <body>
   <main class="app">
+    <section class="panel stack-panel">
+      <h2 class="stack-title">Stack (Top at Bottom)</h2>
+      <ol id="stack-list" class="stack"></ol>
+      <p class="hint" id="runtime-hint">
+        Loading WASM runtime...
+      </p>
+    </section>
+
     <section class="panel">
       <div class="status-row">
         <strong>Rust WASM RPN</strong>
@@ -388,52 +409,40 @@
       <div class="keys" id="keypad">
         <button class="fn" data-action="set-rad">RAD</button>
         <button class="fn" data-action="set-deg">DEG</button>
-        <button class="fn" data-action="drop">drop</button>
-        <button class="fn" data-action="dup">dup</button>
-        <button class="fn" data-action="swap">swap</button>
-
         <button class="danger" data-action="clear-entry">CE</button>
         <button class="danger" data-action="clear-all">C</button>
-        <button class="op" data-action="mul">*</button>
-        <button class="op" data-action="div">/</button>
-        <button class="fn" data-action="rot">rot</button>
 
-        <button class="fn" data-action="sin">sin</button>
-        <button class="fn" data-action="ln">ln</button>
-        <button class="fn" data-action="sqrt">sqrt</button>
-        <button class="fn" data-action="backspace">back</button>
+        <button class="fn" data-action="drop">Drop</button>
+        <button class="fn" data-action="dup">Dup</button>
+        <button class="fn" data-action="swap">Swap</button>
+        <button class="fn" data-action="rot">Rot</button>
+
         <button class="fn" data-action="toggle-sign">+/-</button>
+        <button class="op" data-action="div">/</button>
+        <button class="op" data-action="mul">*</button>
+        <button class="op" data-action="sub">-</button>
 
         <button data-digit="7">7</button>
         <button data-digit="8">8</button>
         <button data-digit="9">9</button>
         <button class="op" data-action="add">+</button>
-        <button class="op" data-action="sub">-</button>
 
         <button data-digit="4">4</button>
         <button data-digit="5">5</button>
         <button data-digit="6">6</button>
-        <button class="fn" data-action="det">det</button>
-        <button class="fn" data-action="transpose">T</button>
+        <button class="op tall-3" data-action="enter">Enter</button>
 
         <button data-digit="1">1</button>
         <button data-digit="2">2</button>
         <button data-digit="3">3</button>
-        <button class="fn" data-action="inverse">inv</button>
-        <button class="fn" data-action="solve">solve</button>
-
-        <button data-digit="0">0</button>
+        <button class="wide" data-digit="0">0</button>
         <button data-action="decimal">.</button>
-        <button class="op wide" data-action="enter">Enter</button>
-        <button class="fn" data-action="push-identity">I(n)</button>
       </div>
     </section>
 
     <section class="panel">
-      <h2 class="stack-title">Stack (Top First)</h2>
-      <ol id="stack-list" class="stack"></ol>
       <section class="matrix-tools">
-        <h3>Matrix Builder</h3>
+        <h3>Matrix Builder & Operations</h3>
         <div class="matrix-grid">
           <label>
             Matrix A
@@ -444,10 +453,13 @@
             <textarea id="matrix-b-input" placeholder="5&#10;6"></textarea>
           </label>
         </div>
-        <div class="matrix-actions">
+        <div class="matrix-actions" id="matrix-op-actions">
           <button class="fn" id="push-a-btn">Push A</button>
           <button class="fn" id="push-b-btn">Push B</button>
           <button class="op" id="solve-btn">Solve A*x=B</button>
+          <button class="fn" data-action="det">det</button>
+          <button class="fn" data-action="transpose">transpose</button>
+          <button class="fn" data-action="inverse">inverse</button>
         </div>
         <div class="matrix-presets">
           <button class="fn" id="preset-a-btn">Preset A 2x2</button>
@@ -458,19 +470,17 @@
           </div>
         </div>
       </section>
+    </section>
+
+    <section class="panel">
       <section class="complex-tools">
-        <h3>Complex Entry</h3>
-        <div class="complex-row">
-          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex real part">
-          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex imaginary part">
-          <button class="fn" id="push-complex-btn">Push a+bi</button>
-        </div>
-      </section>
-      <section class="complex-tools">
-        <h3>Advanced Scientific</h3>
-        <div class="matrix-actions" id="advanced-actions">
+        <h3>Scientific Functions</h3>
+        <div class="science-actions" id="advanced-actions">
+          <button class="fn" data-action="sin">sin</button>
           <button class="fn" data-action="cos">cos</button>
           <button class="fn" data-action="tan">tan</button>
+          <button class="fn" data-action="sqrt">sqrt</button>
+          <button class="fn" data-action="ln">ln</button>
           <button class="fn" data-action="exp">exp</button>
           <button class="fn" data-action="log10">log10</button>
           <button class="fn" data-action="pow">pow</button>
@@ -490,6 +500,14 @@
           <button class="fn" data-action="e">e</button>
         </div>
       </section>
+      <section class="complex-tools">
+        <h3>Complex Entry</h3>
+        <div class="complex-row">
+          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex real part">
+          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex imaginary part">
+          <button class="fn" id="push-complex-btn">Push a+bi</button>
+        </div>
+      </section>
       <section class="memory-tools">
         <h3>Memory A-Z</h3>
         <div class="memory-row">
@@ -499,9 +517,6 @@
           <button class="danger" id="memory-clear-btn">CLR</button>
         </div>
       </section>
-      <p class="hint" id="runtime-hint">
-        Loading WASM runtime...
-      </p>
     </section>
   </main>
 
@@ -516,6 +531,7 @@
     const keypad = document.getElementById("keypad");
     const matrixAInput = document.getElementById("matrix-a-input");
     const matrixBInput = document.getElementById("matrix-b-input");
+    const matrixOpActions = document.getElementById("matrix-op-actions");
     const pushABtn = document.getElementById("push-a-btn");
     const pushBBtn = document.getElementById("push-b-btn");
     const solveBtn = document.getElementById("solve-btn");
@@ -841,6 +857,12 @@
 
     advancedActions.addEventListener("click", (event) => {
       const button = event.target.closest("button");
+      if (!button) return;
+      handleAction(button.dataset.action);
+    });
+
+    matrixOpActions.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
       if (!button) return;
       handleAction(button.dataset.action);
     });
