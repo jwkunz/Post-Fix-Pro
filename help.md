@@ -44,6 +44,7 @@ Matrix input format:
 
 - One row per line
 - Values separated by spaces or commas
+- Values are parsed when you press `Push A` / `Push B` (free-form text allowed while typing)
 
 Example:
 
@@ -86,6 +87,7 @@ Example:
 - Complex entry mode selector:
   - `a + bi`: enter real and imaginary parts directly
   - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
+- Complex fields accept free-form text while typing; parsing/validation happens when pressing `Push ...`
 - `Push ...`: pushes the converted complex value onto the stack
 
 ### Integer / Number Tools

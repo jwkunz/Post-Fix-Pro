@@ -720,8 +720,8 @@
           </select>
         </div>
         <div class="complex-row">
-          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex value A">
-          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex value B">
+          <input id="complex-re-input" type="text" value="0" aria-label="Complex value A" spellcheck="false" autocomplete="off">
+          <input id="complex-im-input" type="text" value="1" aria-label="Complex value B" spellcheck="false" autocomplete="off">
           <button class="fn" id="push-complex-btn">Push a+bi</button>
         </div>
       </section>
@@ -949,12 +949,18 @@
     }
 
     function pushComplexFromInputs() {
-      const a = Number(complexReInput.value);
-      const b = Number(complexImInput.value);
-      if (!Number.isFinite(a) || !Number.isFinite(b)) {
-        setError("complex entry must contain valid numeric values");
+      const parsedA = parseFreeFormNumber(complexReInput.value, "first complex field");
+      if (!parsedA.ok) {
+        setError(parsedA.error);
         return;
       }
+      const parsedB = parseFreeFormNumber(complexImInput.value, "second complex field");
+      if (!parsedB.ok) {
+        setError(parsedB.error);
+        return;
+      }
+      const a = parsedA.value;
+      const b = parsedB.value;
       let re = a;
       let im = b;
       if (complexEntryMode.value === "polar") {
@@ -964,6 +970,18 @@
         im = a * Math.sin(theta);
       }
       call("push_complex", re, im);
+    }
+
+    function parseFreeFormNumber(raw, fieldLabel) {
+      const text = String(raw ?? "").trim();
+      if (!text) {
+        return { ok: false, error: `${fieldLabel} is empty` };
+      }
+      const value = Number(text);
+      if (!Number.isFinite(value)) {
+        return { ok: false, error: `${fieldLabel} is not a valid number: ${text}` };
+      }
+      return { ok: true, value };
     }
 
     function syncComplexEntryModeUI() {
