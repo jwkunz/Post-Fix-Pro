@@ -247,6 +247,46 @@
       background: var(--panel-2);
     }
 
+    .matrix-size-controls {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .matrix-size-group {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-2);
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .matrix-size-group strong {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .matrix-size-row {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: 1fr 1fr auto;
+      align-items: center;
+    }
+
+    .matrix-size-row input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      color: var(--ink);
+      background: #0f1525;
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+    }
+
     .matrix-actions {
       display: grid;
       gap: 8px;
@@ -433,6 +473,10 @@
         grid-template-columns: 1fr;
       }
 
+      .matrix-size-controls {
+        grid-template-columns: 1fr;
+      }
+
       .matrix-actions {
         grid-template-columns: 1fr;
       }
@@ -530,6 +574,24 @@
             Matrix B
             <textarea id="matrix-b-input" placeholder="5&#10;6"></textarea>
           </label>
+        </div>
+        <div class="matrix-size-controls">
+          <div class="matrix-size-group">
+            <strong>Size A</strong>
+            <div class="matrix-size-row">
+              <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix A rows">
+              <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix A columns">
+              <button class="fn" id="apply-a-size-btn" type="button">Apply</button>
+            </div>
+          </div>
+          <div class="matrix-size-group">
+            <strong>Size B</strong>
+            <div class="matrix-size-row">
+              <input id="matrix-b-rows" type="number" min="1" step="1" value="2" aria-label="Matrix B rows">
+              <input id="matrix-b-cols" type="number" min="1" step="1" value="1" aria-label="Matrix B columns">
+              <button class="fn" id="apply-b-size-btn" type="button">Apply</button>
+            </div>
+          </div>
         </div>
         <div class="matrix-actions" id="matrix-op-actions">
           <button class="fn" id="push-a-btn">Push A</button>
@@ -670,6 +732,12 @@
     const keypad = document.getElementById("keypad");
     const matrixAInput = document.getElementById("matrix-a-input");
     const matrixBInput = document.getElementById("matrix-b-input");
+    const matrixARowsInput = document.getElementById("matrix-a-rows");
+    const matrixAColsInput = document.getElementById("matrix-a-cols");
+    const matrixBRowsInput = document.getElementById("matrix-b-rows");
+    const matrixBColsInput = document.getElementById("matrix-b-cols");
+    const applyASizeBtn = document.getElementById("apply-a-size-btn");
+    const applyBSizeBtn = document.getElementById("apply-b-size-btn");
     const matrixOpActions = document.getElementById("matrix-op-actions");
     const pushABtn = document.getElementById("push-a-btn");
     const pushBBtn = document.getElementById("push-b-btn");
@@ -835,6 +903,23 @@
         return;
       }
       call("push_matrix_json", JSON.stringify(parsed.matrix));
+    }
+
+    function matrixTemplate(rows, cols) {
+      return Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => "0").join(" ")
+      ).join("\n");
+    }
+
+    function applyMatrixSize(textarea, rowsInput, colsInput, label) {
+      const rows = Number(rowsInput.value);
+      const cols = Number(colsInput.value);
+      if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+        setError(`${label} size must use positive integer rows and columns`);
+        return;
+      }
+      textarea.value = matrixTemplate(rows, cols);
+      setError("");
     }
 
     function pushComplexFromInputs() {
@@ -1103,12 +1188,24 @@
 
     presetABtn.addEventListener("click", () => {
       matrixAInput.value = "1 2\n3 4";
+      matrixARowsInput.value = "2";
+      matrixAColsInput.value = "2";
       setError("");
     });
 
     presetBBtn.addEventListener("click", () => {
       matrixBInput.value = "5\n6";
+      matrixBRowsInput.value = "2";
+      matrixBColsInput.value = "1";
       setError("");
+    });
+
+    applyASizeBtn.addEventListener("click", () => {
+      applyMatrixSize(matrixAInput, matrixARowsInput, matrixAColsInput, "Matrix A");
+    });
+
+    applyBSizeBtn.addEventListener("click", () => {
+      applyMatrixSize(matrixBInput, matrixBRowsInput, matrixBColsInput, "Matrix B");
     });
 
     pushIdentityBtn.addEventListener("click", () => {

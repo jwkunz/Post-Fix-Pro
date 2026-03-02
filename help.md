@@ -30,6 +30,9 @@ Stack labels:
 ## Matrix Panel
 
 - `Push A`, `Push B`: parse matrix text and push to stack
+- `Size A` / `Size B` controls:
+  - set rows + columns
+  - press `Apply` to regenerate matrix text with that size
 - `Solve A*x=B`: solve linear system using top two matrices
 - `det`: determinant of top matrix
 - `transpose`: transpose top matrix
