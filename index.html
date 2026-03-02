@@ -134,6 +134,12 @@
       background: var(--key-fn);
     }
 
+    button.fn.active {
+      border-color: #4d9f88;
+      box-shadow: 0 0 0 1px rgba(92, 227, 182, 0.35);
+      filter: brightness(1.08);
+    }
+
     button.danger {
       background: var(--key-danger);
     }
@@ -142,8 +148,8 @@
       grid-column: span 2;
     }
 
-    button.tall-3 {
-      grid-row: span 3;
+    button.tall-2 {
+      grid-row: span 2;
     }
 
     .stack-title {
@@ -430,13 +436,14 @@
         <button data-digit="4">4</button>
         <button data-digit="5">5</button>
         <button data-digit="6">6</button>
-        <button class="op tall-3" data-action="enter">Enter</button>
+        <button class="op tall-2" data-action="enter">Enter</button>
 
         <button data-digit="1">1</button>
         <button data-digit="2">2</button>
         <button data-digit="3">3</button>
         <button class="wide" data-digit="0">0</button>
         <button data-action="decimal">.</button>
+        <button class="fn" data-action="exp10">EXP</button>
       </div>
     </section>
 
@@ -476,25 +483,46 @@
       <section class="complex-tools">
         <h3>Scientific Functions</h3>
         <div class="science-actions" id="advanced-actions">
-          <button class="fn" data-action="sin">sin</button>
-          <button class="fn" data-action="cos">cos</button>
-          <button class="fn" data-action="tan">tan</button>
+          <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp</button>
+          <button class="fn" data-action="to-rad">to_rad</button>
+          <button class="fn" data-action="to-deg">to_deg</button>
+          <button class="fn" data-action="atan2">atan2</button>
+
+          <button class="fn" data-action="sin" data-hyp="sinh">sin</button>
+          <button class="fn" data-action="asin" data-hyp="asinh">asin</button>
+          <button class="fn" data-action="cos" data-hyp="cosh">cos</button>
+          <button class="fn" data-action="acos" data-hyp="acosh">acos</button>
+          <button class="fn" data-action="tan" data-hyp="tanh">tan</button>
+          <button class="fn" data-action="atan" data-hyp="atanh">atan</button>
+          <button class="fn" data-action="inv">inv x</button>
+          <button class="fn" data-action="square">x^2</button>
           <button class="fn" data-action="sqrt">sqrt</button>
-          <button class="fn" data-action="ln">ln</button>
-          <button class="fn" data-action="exp">exp</button>
+          <button class="fn" data-action="pow">x^y</button>
+          <button class="fn" data-action="root">x√y</button>
+          <button class="fn" data-action="exp10">10^x</button>
           <button class="fn" data-action="log10">log10</button>
-          <button class="fn" data-action="pow">pow</button>
-          <button class="fn" data-action="percent">%</button>
-          <button class="fn" data-action="asin">asin</button>
-          <button class="fn" data-action="acos">acos</button>
-          <button class="fn" data-action="atan">atan</button>
-          <button class="fn" data-action="sinh">sinh</button>
-          <button class="fn" data-action="cosh">cosh</button>
-          <button class="fn" data-action="tanh">tanh</button>
-          <button class="fn" data-action="asinh">asinh</button>
-          <button class="fn" data-action="acosh">acosh</button>
-          <button class="fn" data-action="atanh">atanh</button>
+          <button class="fn" data-action="exp">e^x</button>
+          <button class="fn" data-action="ln">ln x</button>
+          <button class="fn" data-action="exp2">2^x</button>
+          <button class="fn" data-action="log2">log2 x</button>
           <button class="fn" data-action="gamma">gamma</button>
+          <button class="fn" data-action="signum">signum</button>
+          <button class="fn" data-action="abs">abs</button>
+          <button class="fn" data-action="abs-sq">abs^2</button>
+          <button class="fn" data-action="arg">arg</button>
+          <button class="fn" data-action="conjugate">conj</button>
+          <button class="fn" data-action="factorial">n!</button>
+          <button class="fn" data-action="ncr">nCr</button>
+          <button class="fn" data-action="npr">nPr</button>
+          <button class="fn" data-action="modulo">x mod y</button>
+          <button class="fn" data-action="rand">ran#</button>
+          <button class="fn" data-action="gcd">GCD</button>
+          <button class="fn" data-action="lcm">LCM</button>
+          <button class="fn" data-action="round">rnd</button>
+          <button class="fn" data-action="floor">floor</button>
+          <button class="fn" data-action="ceil">ceil</button>
+          <button class="fn" data-action="dec-part">decP</button>
+          <button class="fn" data-action="percent">%</button>
           <button class="fn" data-action="erf">erf</button>
           <button class="fn" data-action="pi">pi</button>
           <button class="fn" data-action="e">e</button>
@@ -543,6 +571,7 @@
     const complexImInput = document.getElementById("complex-im-input");
     const pushComplexBtn = document.getElementById("push-complex-btn");
     const advancedActions = document.getElementById("advanced-actions");
+    const hypToggleBtn = document.getElementById("hyp-toggle-btn");
     const memoryRegisterInput = document.getElementById("memory-register-input");
     const memoryStoreBtn = document.getElementById("memory-store-btn");
     const memoryRecallBtn = document.getElementById("memory-recall-btn");
@@ -552,6 +581,7 @@
     let entryBuffer = "";
     let lastState = null;
     let pendingCommand = null;
+    let hypMode = false;
 
     function setError(message) {
       if (!message) {
@@ -744,6 +774,29 @@
       clearPendingCommand();
     }
 
+    function applyHypModeUI() {
+      const toggles = advancedActions.querySelectorAll("button[data-hyp]");
+      toggles.forEach((button) => {
+        const baseAction = button.dataset.action;
+        const baseLabel = button.dataset.baseLabel || button.textContent;
+        const hypAction = button.dataset.hyp;
+        if (!button.dataset.baseAction) {
+          button.dataset.baseAction = baseAction;
+        }
+        if (!button.dataset.baseLabel) {
+          button.dataset.baseLabel = baseLabel;
+        }
+        if (hypMode) {
+          button.dataset.action = hypAction;
+          button.textContent = hypAction;
+        } else {
+          button.dataset.action = button.dataset.baseAction;
+          button.textContent = button.dataset.baseLabel;
+        }
+      });
+      hypToggleBtn.classList.toggle("active", hypMode);
+    }
+
     function handleAction(action) {
       if (!wasmCalc) return;
       if (action === "decimal") {
@@ -784,6 +837,11 @@
       }
       if (action === "set-rad") {
         call("set_angle_mode_rad");
+        return;
+      }
+      if (action === "hyp-toggle") {
+        hypMode = !hypMode;
+        applyHypModeUI();
         return;
       }
       if (action === "solve") {
@@ -830,9 +888,34 @@
         acosh: "acosh",
         atanh: "atanh",
         exp: "exp",
+        exp10: "exp10",
+        exp2: "exp2",
         log10: "log10",
+        log2: "log2",
         gamma: "gamma",
         erf: "erf",
+        inv: "inv",
+        square: "square",
+        root: "root",
+        signum: "signum",
+        abs: "abs",
+        "abs-sq": "abs_sq",
+        arg: "arg",
+        conjugate: "conjugate",
+        atan2: "atan2",
+        "to-rad": "to_rad",
+        "to-deg": "to_deg",
+        factorial: "factorial",
+        ncr: "ncr",
+        npr: "npr",
+        modulo: "modulo",
+        rand: "rand_num",
+        gcd: "gcd",
+        lcm: "lcm",
+        round: "round_value",
+        floor: "floor_value",
+        ceil: "ceil_value",
+        "dec-part": "dec_part",
         inverse: "inverse",
         transpose: "transpose",
         det: "determinant"
@@ -1010,6 +1093,7 @@
         }
 
         wasmCalc = new wasm_bindgen.WasmCalculator();
+        applyHypModeUI();
         runtimeHint.textContent = "WASM runtime loaded.";
         const initial = JSON.parse(wasmCalc.snapshot_json());
         renderState(initial);

@@ -75,6 +75,7 @@ pub struct CalcState {
     pub display_mode: DisplayMode,
     pub precision: u8,
     pub memory: Vec<Option<Value>>,
+    rng_state: u64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -98,6 +99,7 @@ impl Calculator {
                 display_mode: DisplayMode::Fix,
                 precision: 6,
                 memory: vec![None; 26],
+                rng_state: 0x9E37_79B9_7F4A_7C15,
             },
         }
     }
@@ -590,6 +592,354 @@ impl Calculator {
         })
     }
 
+    pub fn inv(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => {
+                if *v == 0.0 {
+                    return Err(CalcError::DivideByZero);
+                }
+                Ok(Value::Real(1.0 / v))
+            }
+            Value::Complex(c) => {
+                let denom = c.re * c.re + c.im * c.im;
+                if denom == 0.0 {
+                    return Err(CalcError::DivideByZero);
+                }
+                Ok(Value::Complex(Complex {
+                    re: c.re / denom,
+                    im: -c.im / denom,
+                }))
+            }
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "inv does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn square(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v * v)),
+            Value::Complex(c) => Ok(Value::Complex(Complex {
+                re: c.re * c.re - c.im * c.im,
+                im: 2.0 * c.re * c.im,
+            })),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "square does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn root(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(x), Value::Real(y)) => {
+                if *y == 0.0 {
+                    return Err(CalcError::DivideByZero);
+                }
+                Ok(Value::Real(x.powf(1.0 / y)))
+            }
+            _ => {
+                let x = Self::as_complex(left, "root")?;
+                let y = Self::as_complex(right, "root")?;
+                let out = Self::to_complex64(x).powc(Complex64::new(1.0, 0.0) / Self::to_complex64(y));
+                Ok(Value::Complex(Self::from_complex64(out)))
+            }
+        })
+    }
+
+    pub fn exp10(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(10.0_f64.powf(*v))),
+            Value::Complex(c) => Ok(Value::Complex(Self::from_complex64(
+                Complex64::new(10.0, 0.0).powc(Self::to_complex64(*c)),
+            ))),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "10^x does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn exp2(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(2.0_f64.powf(*v))),
+            Value::Complex(c) => Ok(Value::Complex(Self::from_complex64(
+                Complex64::new(2.0, 0.0).powc(Self::to_complex64(*c)),
+            ))),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "2^x does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn log2(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) if *v <= 0.0 => Err(CalcError::DomainError(
+                "log2 is undefined for non-positive real values".to_string(),
+            )),
+            Value::Real(v) => Ok(Value::Real(v.log2())),
+            Value::Complex(c) => {
+                let out = Self::to_complex64(*c).ln() / Complex64::new(2.0, 0.0).ln();
+                Ok(Value::Complex(Self::from_complex64(out)))
+            }
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "log2 does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn signum(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.signum())),
+            Value::Complex(c) => {
+                let norm = (c.re * c.re + c.im * c.im).sqrt();
+                if norm == 0.0 {
+                    Ok(Value::Complex(Complex { re: 0.0, im: 0.0 }))
+                } else {
+                    Ok(Value::Complex(Complex {
+                        re: c.re / norm,
+                        im: c.im / norm,
+                    }))
+                }
+            }
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "signum does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn abs(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.abs())),
+            Value::Complex(c) => Ok(Value::Real((c.re * c.re + c.im * c.im).sqrt())),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "abs does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn abs_sq(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v * v)),
+            Value::Complex(c) => Ok(Value::Real(c.re * c.re + c.im * c.im)),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "abs^2 does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn arg(&mut self) -> Result<(), CalcError> {
+        let mode = self.state.angle_mode;
+        self.apply_unary_op(|value| match value {
+            Value::Complex(c) => {
+                let radians = c.im.atan2(c.re);
+                let out = match mode {
+                    AngleMode::Deg => radians.to_degrees(),
+                    AngleMode::Rad => radians,
+                };
+                Ok(Value::Real(out))
+            }
+            Value::Real(v) => {
+                let radians = if *v >= 0.0 { 0.0 } else { std::f64::consts::PI };
+                let out = match mode {
+                    AngleMode::Deg => radians.to_degrees(),
+                    AngleMode::Rad => radians,
+                };
+                Ok(Value::Real(out))
+            }
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "arg does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn conjugate(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Complex(c) => Ok(Value::Complex(Complex {
+                re: c.re,
+                im: -c.im,
+            })),
+            Value::Real(v) => Ok(Value::Real(*v)),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "conjugate does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn atan2(&mut self) -> Result<(), CalcError> {
+        let mode = self.state.angle_mode;
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(y), Value::Real(x)) => {
+                let mut out = y.atan2(*x);
+                if mode == AngleMode::Deg {
+                    out = out.to_degrees();
+                }
+                Ok(Value::Real(out))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "atan2 requires two real operands (y then x)".to_string(),
+            )),
+        })
+    }
+
+    pub fn to_rad(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.to_radians())),
+            _ => Err(CalcError::TypeMismatch(
+                "to_rad currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn to_deg(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.to_degrees())),
+            _ => Err(CalcError::TypeMismatch(
+                "to_deg currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn factorial(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => {
+                let n = Self::as_non_negative_integer(*v, "factorial")?;
+                let mut out = 1.0;
+                for i in 2..=n {
+                    out *= i as f64;
+                }
+                Ok(Value::Real(out))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "factorial currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn ncr(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(n), Value::Real(r)) => {
+                let n = Self::as_non_negative_integer(*n, "nCr n")?;
+                let r = Self::as_non_negative_integer(*r, "nCr r")?;
+                if r > n {
+                    return Err(CalcError::DomainError("nCr requires n >= r".to_string()));
+                }
+                Ok(Value::Real(Self::ncr_value(n, r)))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "nCr currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn npr(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(n), Value::Real(r)) => {
+                let n = Self::as_non_negative_integer(*n, "nPr n")?;
+                let r = Self::as_non_negative_integer(*r, "nPr r")?;
+                if r > n {
+                    return Err(CalcError::DomainError("nPr requires n >= r".to_string()));
+                }
+                let mut out = 1.0;
+                for i in 0..r {
+                    out *= (n - i) as f64;
+                }
+                Ok(Value::Real(out))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "nPr currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn modulo(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(x), Value::Real(y)) => {
+                if *y == 0.0 {
+                    return Err(CalcError::DivideByZero);
+                }
+                Ok(Value::Real(x.rem_euclid(*y)))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "mod currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn rand_num(&mut self) -> Result<(), CalcError> {
+        let next = self.next_random();
+        self.state.stack.push(Value::Real(next));
+        Ok(())
+    }
+
+    pub fn gcd(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(a), Value::Real(b)) => {
+                let a = Self::as_integer(*a, "gcd a")?;
+                let b = Self::as_integer(*b, "gcd b")?;
+                let g = Self::gcd_u64(a.unsigned_abs(), b.unsigned_abs());
+                Ok(Value::Real(g as f64))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "gcd currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn lcm(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Real(a), Value::Real(b)) => {
+                let a = Self::as_integer(*a, "lcm a")?;
+                let b = Self::as_integer(*b, "lcm b")?;
+                let a_abs = a.unsigned_abs();
+                let b_abs = b.unsigned_abs();
+                if a_abs == 0 || b_abs == 0 {
+                    return Ok(Value::Real(0.0));
+                }
+                let g = Self::gcd_u64(a_abs, b_abs);
+                let l = (a_abs / g).saturating_mul(b_abs);
+                Ok(Value::Real(l as f64))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "lcm currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn round_value(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.round())),
+            _ => Err(CalcError::TypeMismatch(
+                "rnd currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn floor_value(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.floor())),
+            _ => Err(CalcError::TypeMismatch(
+                "floor currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn ceil_value(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v.ceil())),
+            _ => Err(CalcError::TypeMismatch(
+                "ceil currently supports real values only".to_string(),
+            )),
+        })
+    }
+
+    pub fn dec_part(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(v - v.trunc())),
+            _ => Err(CalcError::TypeMismatch(
+                "decP currently supports real values only".to_string(),
+            )),
+        })
+    }
+
     pub fn memory_store(&mut self, register: usize) -> Result<(), CalcError> {
         self.require_stack_len(1)?;
         let index = Self::validate_register(register)?;
@@ -758,6 +1108,59 @@ impl Calculator {
             return Err(CalcError::InvalidRegister(register));
         }
         Ok(register)
+    }
+
+    fn as_integer(value: f64, label: &str) -> Result<i64, CalcError> {
+        if !value.is_finite() {
+            return Err(CalcError::InvalidInput(format!("{label} must be finite")));
+        }
+        if value.fract() != 0.0 {
+            return Err(CalcError::InvalidInput(format!("{label} must be an integer")));
+        }
+        if value < i64::MIN as f64 || value > i64::MAX as f64 {
+            return Err(CalcError::InvalidInput(format!("{label} is out of range")));
+        }
+        Ok(value as i64)
+    }
+
+    fn as_non_negative_integer(value: f64, label: &str) -> Result<u64, CalcError> {
+        let int = Self::as_integer(value, label)?;
+        if int < 0 {
+            return Err(CalcError::DomainError(format!("{label} must be non-negative")));
+        }
+        Ok(int as u64)
+    }
+
+    fn ncr_value(n: u64, r: u64) -> f64 {
+        if r == 0 || r == n {
+            return 1.0;
+        }
+        let k = r.min(n - r);
+        let mut out = 1.0;
+        for i in 1..=k {
+            out *= (n - k + i) as f64;
+            out /= i as f64;
+        }
+        out
+    }
+
+    fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
+        while b != 0 {
+            let t = b;
+            b = a % b;
+            a = t;
+        }
+        a
+    }
+
+    fn next_random(&mut self) -> f64 {
+        self.state.rng_state = self
+            .state
+            .rng_state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1);
+        let bits = self.state.rng_state >> 11;
+        (bits as f64) / ((1u64 << 53) as f64)
     }
 
     fn real_erf(x: f64) -> f64 {
@@ -1647,5 +2050,84 @@ mod tests {
                 Value::Real(20.0)
             ]
         );
+    }
+
+    #[test]
+    fn complex_abs_arg_and_conjugate() {
+        let mut calc = Calculator::new();
+        calc.set_angle_mode(AngleMode::Deg);
+        calc.push_value(Value::Complex(Complex { re: 3.0, im: 4.0 }));
+        assert_eq!(calc.abs(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(5.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Complex(Complex { re: 0.0, im: 1.0 }));
+        assert_eq!(calc.arg(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 90.0, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Complex(Complex { re: -2.0, im: 7.0 }));
+        assert_eq!(calc.conjugate(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Complex(Complex { re: -2.0, im: -7.0 })]
+        );
+    }
+
+    #[test]
+    fn root_and_log2_exp2() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(27.0));
+        calc.push_value(Value::Real(3.0));
+        assert_eq!(calc.root(), Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, 3.0, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Real(8.0));
+        assert_eq!(calc.log2(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(3.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(5.0));
+        assert_eq!(calc.exp2(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(32.0)]);
+    }
+
+    #[test]
+    fn factorial_combinations_and_integer_ops() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(5.0));
+        assert_eq!(calc.factorial(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(120.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(5.0));
+        calc.push_value(Value::Real(2.0));
+        assert_eq!(calc.ncr(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(10.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(5.0));
+        calc.push_value(Value::Real(2.0));
+        assert_eq!(calc.npr(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(20.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(42.0));
+        calc.push_value(Value::Real(30.0));
+        assert_eq!(calc.gcd(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(6.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(12.0));
+        calc.push_value(Value::Real(18.0));
+        assert_eq!(calc.lcm(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(36.0)]);
     }
 }
