@@ -83,7 +83,10 @@ Example:
 - `abs^2`: squared magnitude
 - `arg`: phase/argument (respects RAD/DEG mode)
 - `conj`: complex conjugate
-- `Push a+bi`: push complex from real/imag input fields
+- Complex entry mode selector:
+  - `a + bi`: enter real and imaginary parts directly
+  - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
+- `Push ...`: pushes the converted complex value onto the stack
 
 ### Integer / Number Tools
 

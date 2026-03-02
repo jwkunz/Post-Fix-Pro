@@ -359,6 +359,24 @@
       gap: 8px;
     }
 
+    .complex-mode-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .complex-mode-row select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      color: var(--ink);
+      background: var(--panel-2);
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+    }
+
     .memory-tools {
       margin-top: 14px;
       border-top: 1px solid var(--border);
@@ -694,9 +712,16 @@
       <h3 class="panel-title">Other</h3>
       <section class="complex-tools">
         <h3>Complex Entry</h3>
+        <div class="complex-mode-row">
+          <label for="complex-entry-mode">Mode</label>
+          <select id="complex-entry-mode" aria-label="Complex entry mode">
+            <option value="cartesian">a + bi</option>
+            <option value="polar">mag + arg</option>
+          </select>
+        </div>
         <div class="complex-row">
-          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex real part">
-          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex imaginary part">
+          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex value A">
+          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex value B">
           <button class="fn" id="push-complex-btn">Push a+bi</button>
         </div>
       </section>
@@ -746,6 +771,7 @@
     const presetBBtn = document.getElementById("preset-b-btn");
     const identitySizeInput = document.getElementById("identity-size-input");
     const pushIdentityBtn = document.getElementById("push-identity-btn");
+    const complexEntryMode = document.getElementById("complex-entry-mode");
     const complexReInput = document.getElementById("complex-re-input");
     const complexImInput = document.getElementById("complex-im-input");
     const pushComplexBtn = document.getElementById("push-complex-btn");
@@ -923,13 +949,38 @@
     }
 
     function pushComplexFromInputs() {
-      const re = Number(complexReInput.value);
-      const im = Number(complexImInput.value);
-      if (!Number.isFinite(re) || !Number.isFinite(im)) {
-        setError("complex entry must contain valid numeric real and imaginary parts");
+      const a = Number(complexReInput.value);
+      const b = Number(complexImInput.value);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) {
+        setError("complex entry must contain valid numeric values");
         return;
       }
+      let re = a;
+      let im = b;
+      if (complexEntryMode.value === "polar") {
+        const angleMode = String(lastState?.angle_mode || "rad").toLowerCase();
+        const theta = angleMode === "deg" ? (b * Math.PI / 180.0) : b;
+        re = a * Math.cos(theta);
+        im = a * Math.sin(theta);
+      }
       call("push_complex", re, im);
+    }
+
+    function syncComplexEntryModeUI() {
+      const mode = complexEntryMode.value;
+      if (mode === "polar") {
+        complexReInput.placeholder = "magnitude";
+        complexImInput.placeholder = "arg";
+        complexReInput.setAttribute("aria-label", "Complex magnitude");
+        complexImInput.setAttribute("aria-label", "Complex argument");
+        pushComplexBtn.textContent = "Push mag∠arg";
+      } else {
+        complexReInput.placeholder = "real";
+        complexImInput.placeholder = "imag";
+        complexReInput.setAttribute("aria-label", "Complex real part");
+        complexImInput.setAttribute("aria-label", "Complex imaginary part");
+        pushComplexBtn.textContent = "Push a+bi";
+      }
     }
 
     function pushIdentityFromInput() {
@@ -1218,6 +1269,11 @@
       pushComplexFromInputs();
     });
 
+    complexEntryMode.addEventListener("change", () => {
+      syncComplexEntryModeUI();
+      setError("");
+    });
+
     memoryStoreBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       const index = parseRegisterIndex();
@@ -1345,6 +1401,7 @@
         }
 
         wasmCalc = new wasm_bindgen.WasmCalculator();
+        syncComplexEntryModeUI();
         applyHypModeUI();
         runtimeHint.textContent = "WASM runtime loaded.";
         const initial = JSON.parse(wasmCalc.snapshot_json());
@@ -1361,6 +1418,7 @@
       }
     }
 
+    syncComplexEntryModeUI();
     boot();
   </script>
 </body>
