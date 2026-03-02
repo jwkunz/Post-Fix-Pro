@@ -43,13 +43,14 @@
     }
 
     .app {
-      width: min(960px, 100%);
+      width: min(1120px, 100%);
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
       gap: 14px;
     }
 
     .panel {
+      min-width: 0;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -80,7 +81,7 @@
     }
 
     .entry {
-      font-size: 26px;
+      font-size: clamp(22px, 5.4vw, 28px);
       color: #f5fbff;
       line-height: 1.2;
       word-break: break-all;
@@ -109,8 +110,8 @@
       border-radius: 10px;
       background: var(--key);
       color: var(--ink);
-      font-size: 16px;
-      min-height: 44px;
+      font-size: clamp(13px, 2.5vw, 16px);
+      min-height: clamp(38px, 9vw, 46px);
       cursor: pointer;
       transition: transform 90ms ease, filter 120ms ease, box-shadow 120ms ease;
     }
@@ -310,7 +311,7 @@
       letter-spacing: 0.06em;
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 1100px) {
       .app {
         grid-template-columns: 1fr;
       }
@@ -326,12 +327,32 @@
       }
 
       button {
-        min-height: 40px;
+        min-height: 36px;
         font-size: 14px;
       }
 
       .keys {
         gap: 6px;
+      }
+
+      .matrix-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix-presets {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix-presets .identity {
+        grid-column: span 1;
+      }
+
+      .complex-row {
+        grid-template-columns: 1fr;
       }
 
       .memory-row {
