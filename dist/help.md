@@ -108,6 +108,20 @@ Example:
 - `ceil`: ceil
 - `decP`: decimal part (`x - trunc(x)`)
 
+### Constants Panel
+
+- `pi`: π
+- `e`: Euler's number
+- `ran#`: pseudo-random number in `[0, 1)`
+- `gamma`: Euler-Mascheroni constant `0.5772156649015329`
+- `c`: speed of light `299792458`
+- `mol`: Avogadro constant `6.02214076E23`
+- `k`: Boltzmann constant `1.380649E-23`
+- `hbar`: reduced Planck constant `1.054571817E-34`
+- `epsilon_0`: vacuum permittivity `8.8541878128E-12`
+- `mu_0`: vacuum permeability `1.25663706212E-6`
+- `G`: Newtonian gravitational constant `6.67430E-11`
+
 ## Memory (A-Z)
 
 - Choose register letter in input (`A` to `Z`)

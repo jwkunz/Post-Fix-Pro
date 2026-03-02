@@ -705,6 +705,14 @@
         <button class="fn" data-action="pi">pi</button>
         <button class="fn" data-action="e">e</button>
         <button class="fn" data-action="rand">ran#</button>
+        <button class="fn" data-action="const-euler-gamma">gamma</button>
+        <button class="fn" data-action="const-c">c</button>
+        <button class="fn" data-action="const-mol">mol</button>
+        <button class="fn" data-action="const-k">k</button>
+        <button class="fn" data-action="const-hbar">hbar</button>
+        <button class="fn" data-action="const-epsilon0">epsilon_0</button>
+        <button class="fn" data-action="const-mu0">mu_0</button>
+        <button class="fn" data-action="const-G">G</button>
       </div>
     </section>
 
@@ -1193,6 +1201,20 @@
       }
       if (action === "e") {
         call("push_e");
+        return;
+      }
+      const constantMap = {
+        "const-euler-gamma": 0.5772156649015329,
+        "const-c": 299792458.0,
+        "const-mol": 6.02214076e23,
+        "const-k": 1.380649e-23,
+        "const-hbar": 1.054571817e-34,
+        "const-epsilon0": 8.8541878128e-12,
+        "const-mu0": 1.25663706212e-6,
+        "const-G": 6.67430e-11
+      };
+      if (Object.prototype.hasOwnProperty.call(constantMap, action)) {
+        call("push_real", constantMap[action]);
         return;
       }
 
