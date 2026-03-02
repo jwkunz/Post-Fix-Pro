@@ -717,6 +717,7 @@
           <select id="complex-entry-mode" aria-label="Complex entry mode">
             <option value="cartesian">a + bi</option>
             <option value="polar">mag + arg</option>
+            <option value="exp2pi">a * exp(i 2 pi b)</option>
           </select>
         </div>
         <div class="complex-row">
@@ -990,6 +991,10 @@
         const theta = angleMode === "deg" ? (b * Math.PI / 180.0) : b;
         re = a * Math.cos(theta);
         im = a * Math.sin(theta);
+      } else if (complexEntryMode.value === "exp2pi") {
+        const theta = 2.0 * Math.PI * b;
+        re = a * Math.cos(theta);
+        im = a * Math.sin(theta);
       }
       call("push_complex", re, im);
     }
@@ -1014,6 +1019,12 @@
         complexReInput.setAttribute("aria-label", "Complex magnitude");
         complexImInput.setAttribute("aria-label", "Complex argument");
         pushComplexBtn.textContent = "Push mag∠arg";
+      } else if (mode === "exp2pi") {
+        complexReInput.placeholder = "a";
+        complexImInput.placeholder = "b";
+        complexReInput.setAttribute("aria-label", "Complex scale a");
+        complexImInput.setAttribute("aria-label", "Complex phase cycles b");
+        pushComplexBtn.textContent = "Push a·exp(i2πb)";
       } else {
         complexReInput.placeholder = "real";
         complexImInput.placeholder = "imag";

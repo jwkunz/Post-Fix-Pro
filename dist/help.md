@@ -89,6 +89,7 @@ Example:
 - Complex entry mode selector:
   - `a + bi`: enter real and imaginary parts directly
   - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
+  - `a * exp(i 2 pi b)`: enter scale `a` and cycle phase `b` (`theta = 2πb`)
 - Complex fields accept free-form text while typing; parsing/validation happens when pressing `Push ...`
 - Scientific notation is supported in complex fields (e.g. `2.5E2`)
 - `Push ...`: pushes the converted complex value onto the stack
