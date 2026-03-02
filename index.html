@@ -167,13 +167,24 @@
       padding: 8px 10px;
       font-family: "Courier New", monospace;
       background: var(--panel-2);
-      font-size: 13px;
+      font-size: 15px;
       overflow-wrap: anywhere;
     }
 
     .stack .idx {
       color: var(--muted);
       min-width: 28px;
+    }
+
+    .stack li.top {
+      border-color: #1f8f5e;
+      background: linear-gradient(180deg, rgba(28, 95, 66, 0.35) 0%, rgba(20, 70, 50, 0.35) 100%);
+      box-shadow: inset 0 0 0 1px rgba(127, 231, 173, 0.2);
+    }
+
+    .stack li.top .idx {
+      color: #7fe7ad;
+      font-weight: 700;
     }
 
     .hint {
@@ -557,6 +568,9 @@
       const bottomFirst = [...(state.stack || [])];
       bottomFirst.forEach((value, idx) => {
         const li = document.createElement("li");
+        if (idx === bottomFirst.length - 1) {
+          li.classList.add("top");
+        }
         const stackIndex = document.createElement("span");
         stackIndex.className = "idx";
         stackIndex.textContent = idx === bottomFirst.length - 1 ? "T" : `#${idx}`;
