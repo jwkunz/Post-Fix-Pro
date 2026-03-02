@@ -533,18 +533,18 @@
       entryDisplay.textContent = state.entry_buffer || "0";
       angleIndicator.textContent = String(state.angle_mode || "rad").toUpperCase();
       stackList.innerHTML = "";
-      const topFirst = [...(state.stack || [])].reverse();
-      topFirst.forEach((value, idx) => {
+      const bottomFirst = [...(state.stack || [])];
+      bottomFirst.forEach((value, idx) => {
         const li = document.createElement("li");
         const stackIndex = document.createElement("span");
         stackIndex.className = "idx";
-        stackIndex.textContent = `#${idx}`;
+        stackIndex.textContent = idx === bottomFirst.length - 1 ? "T" : `#${idx}`;
         const val = document.createElement("span");
         val.textContent = formatApiValue(value);
         li.append(stackIndex, val);
         stackList.append(li);
       });
-      if (!topFirst.length) {
+      if (!bottomFirst.length) {
         const li = document.createElement("li");
         li.textContent = "(empty)";
         stackList.append(li);
