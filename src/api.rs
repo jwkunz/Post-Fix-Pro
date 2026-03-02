@@ -7,7 +7,11 @@ use crate::{AngleMode, CalcError, Calculator, Complex, DisplayMode, Matrix, Valu
 pub enum ApiValue {
     Real { value: f64 },
     Complex { re: f64, im: f64 },
-    Matrix { rows: usize, cols: usize, data: Vec<f64> },
+    Matrix {
+        rows: usize,
+        cols: usize,
+        data: Vec<ComplexInput>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,7 +56,7 @@ pub struct ApiResponse {
 pub struct MatrixInput {
     pub rows: usize,
     pub cols: usize,
-    pub data: Vec<f64>,
+    pub data: Vec<ComplexInput>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -112,7 +116,15 @@ impl CalculatorApi {
     }
 
     pub fn push_matrix(&mut self, matrix: MatrixInput) -> ApiResponse {
-        match Matrix::new(matrix.rows, matrix.cols, matrix.data) {
+        let data = matrix
+            .data
+            .into_iter()
+            .map(|entry| Complex {
+                re: entry.re,
+                im: entry.im,
+            })
+            .collect::<Vec<_>>();
+        match Matrix::new(matrix.rows, matrix.cols, data) {
             Ok(value) => {
                 self.calculator.push_value(Value::Matrix(value));
                 self.success()
@@ -491,7 +503,14 @@ fn to_api_value(value: &Value) -> ApiValue {
         Value::Matrix(m) => ApiValue::Matrix {
             rows: m.rows,
             cols: m.cols,
-            data: m.data.clone(),
+            data: m
+                .data
+                .iter()
+                .map(|entry| ComplexInput {
+                    re: entry.re,
+                    im: entry.im,
+                })
+                .collect(),
         },
     }
 }
@@ -916,6 +935,10 @@ mod wasm {
 mod tests {
     use super::{ApiAngleMode, ApiValue, CalculatorApi, ComplexInput, MatrixInput};
 
+    fn c(re: f64, im: f64) -> ComplexInput {
+        ComplexInput { re, im }
+    }
+
     #[test]
     fn successful_operation_returns_ok_with_updated_state() {
         let mut api = CalculatorApi::new();
@@ -964,7 +987,7 @@ mod tests {
         let matrix = MatrixInput {
             rows: 2,
             cols: 2,
-            data: vec![1.0, 2.0, 3.0, 4.0],
+            data: vec![c(1.0, 0.0), c(2.0, 0.0), c(3.0, 0.0), c(4.0, 0.0)],
         };
 
         let response = api.push_matrix(matrix);
@@ -975,7 +998,7 @@ mod tests {
             vec![ApiValue::Matrix {
                 rows: 2,
                 cols: 2,
-                data: vec![1.0, 2.0, 3.0, 4.0]
+                data: vec![c(1.0, 0.0), c(2.0, 0.0), c(3.0, 0.0), c(4.0, 0.0)]
             }]
         );
     }
@@ -1005,7 +1028,7 @@ mod tests {
             vec![ApiValue::Matrix {
                 rows: 2,
                 cols: 2,
-                data: vec![1.0, 0.0, 0.0, 1.0]
+                data: vec![c(1.0, 0.0), c(0.0, 0.0), c(0.0, 0.0), c(1.0, 0.0)]
             }]
         );
     }

@@ -19,11 +19,11 @@ pub struct Complex {
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
-    pub data: Vec<f64>,
+    pub data: Vec<Complex>,
 }
 
 impl Matrix {
-    pub fn new(rows: usize, cols: usize, data: Vec<f64>) -> Result<Self, CalcError> {
+    pub fn new(rows: usize, cols: usize, data: Vec<Complex>) -> Result<Self, CalcError> {
         if rows == 0 || cols == 0 {
             return Err(CalcError::InvalidInput(
                 "matrix dimensions must be non-zero".to_string(),
@@ -250,13 +250,15 @@ impl Calculator {
     pub fn mul(&mut self) -> Result<(), CalcError> {
         self.apply_binary_op(|left, right| match (left, right) {
             (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_mul(a, b)?)),
-            (Value::Matrix(a), Value::Real(b)) => Ok(Value::Matrix(Self::matrix_scalar_mul(a, *b))),
-            (Value::Real(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_scalar_mul(b, *a))),
+            (Value::Matrix(a), scalar) => {
+                let scalar = Self::as_complex(scalar, "*")?;
+                Ok(Value::Matrix(Self::matrix_scalar_mul(a, scalar)))
+            }
+            (scalar, Value::Matrix(b)) => {
+                let scalar = Self::as_complex(scalar, "*")?;
+                Ok(Value::Matrix(Self::matrix_scalar_mul(b, scalar)))
+            }
             (Value::Real(a), Value::Real(b)) => Ok(Value::Real(a * b)),
-            (Value::Matrix(_), _) | (_, Value::Matrix(_)) => Err(CalcError::TypeMismatch(
-                "* only supports matrix*matrix, matrix*real, or scalar/complex arithmetic"
-                    .to_string(),
-            )),
             _ => {
                 let left = Self::as_complex(left, "*")?;
                 let right = Self::as_complex(right, "*")?;
@@ -983,7 +985,7 @@ impl Calculator {
 
     pub fn determinant(&mut self) -> Result<(), CalcError> {
         self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_determinant(matrix)?)),
+            Value::Matrix(matrix) => Ok(Value::Complex(Self::matrix_determinant(matrix)?)),
             _ => Err(CalcError::TypeMismatch(
                 "determinant requires a matrix value".to_string(),
             )),
@@ -1211,7 +1213,9 @@ impl Calculator {
             .data
             .iter()
             .zip(&b.data)
-            .map(|(lhs, rhs)| lhs + rhs)
+            .map(|(lhs, rhs)| {
+                Self::from_complex64(Self::to_complex64(*lhs) + Self::to_complex64(*rhs))
+            })
             .collect::<Vec<_>>();
         Matrix::new(a.rows, a.cols, data)
     }
@@ -1222,7 +1226,9 @@ impl Calculator {
             .data
             .iter()
             .zip(&b.data)
-            .map(|(lhs, rhs)| lhs - rhs)
+            .map(|(lhs, rhs)| {
+                Self::from_complex64(Self::to_complex64(*lhs) - Self::to_complex64(*rhs))
+            })
             .collect::<Vec<_>>();
         Matrix::new(a.rows, a.cols, data)
     }
@@ -1235,21 +1241,28 @@ impl Calculator {
             });
         }
 
-        let mut out = vec![0.0; a.rows * b.cols];
+        let mut out = vec![Complex { re: 0.0, im: 0.0 }; a.rows * b.cols];
         for row in 0..a.rows {
             for col in 0..b.cols {
-                let mut acc = 0.0;
+                let mut acc = Complex64::new(0.0, 0.0);
                 for k in 0..a.cols {
-                    acc += a.data[row * a.cols + k] * b.data[k * b.cols + col];
+                    let lhs = Self::to_complex64(a.data[row * a.cols + k]);
+                    let rhs = Self::to_complex64(b.data[k * b.cols + col]);
+                    acc += lhs * rhs;
                 }
-                out[row * b.cols + col] = acc;
+                out[row * b.cols + col] = Self::from_complex64(acc);
             }
         }
         Matrix::new(a.rows, b.cols, out)
     }
 
-    fn matrix_scalar_mul(matrix: &Matrix, scalar: f64) -> Matrix {
-        let data = matrix.data.iter().map(|value| value * scalar).collect();
+    fn matrix_scalar_mul(matrix: &Matrix, scalar: Complex) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(Self::to_complex64(*value) * scalar))
+            .collect();
         Matrix {
             rows: matrix.rows,
             cols: matrix.cols,
@@ -1258,7 +1271,7 @@ impl Calculator {
     }
 
     fn matrix_transpose(matrix: &Matrix) -> Matrix {
-        let mut out = vec![0.0; matrix.data.len()];
+        let mut out = vec![Complex { re: 0.0, im: 0.0 }; matrix.data.len()];
         for row in 0..matrix.rows {
             for col in 0..matrix.cols {
                 out[col * matrix.rows + row] = matrix.data[row * matrix.cols + col];
@@ -1272,9 +1285,9 @@ impl Calculator {
     }
 
     fn matrix_identity(size: usize) -> Matrix {
-        let mut data = vec![0.0; size * size];
+        let mut data = vec![Complex { re: 0.0, im: 0.0 }; size * size];
         for i in 0..size {
-            data[i * size + i] = 1.0;
+            data[i * size + i] = Complex { re: 1.0, im: 0.0 };
         }
         Matrix {
             rows: size,
@@ -1283,19 +1296,23 @@ impl Calculator {
         }
     }
 
-    fn matrix_determinant(matrix: &Matrix) -> Result<f64, CalcError> {
+    fn matrix_determinant(matrix: &Matrix) -> Result<Complex, CalcError> {
         Self::require_square(matrix, "determinant")?;
         let n = matrix.rows;
-        let mut data = matrix.data.clone();
+        let mut data = matrix
+            .data
+            .iter()
+            .map(|v| Self::to_complex64(*v))
+            .collect::<Vec<_>>();
         let mut sign = 1.0;
-        let mut det = 1.0;
+        let mut det = Complex64::new(1.0, 0.0);
         let eps = 1e-12;
 
         for i in 0..n {
             let mut pivot_row = i;
-            let mut pivot_abs = data[i * n + i].abs();
+            let mut pivot_abs = data[i * n + i].norm();
             for r in (i + 1)..n {
-                let candidate = data[r * n + i].abs();
+                let candidate = data[r * n + i].norm();
                 if candidate > pivot_abs {
                     pivot_abs = candidate;
                     pivot_row = r;
@@ -1303,7 +1320,7 @@ impl Calculator {
             }
 
             if pivot_abs < eps {
-                return Ok(0.0);
+                return Ok(Complex { re: 0.0, im: 0.0 });
             }
 
             if pivot_row != i {
@@ -1318,28 +1335,37 @@ impl Calculator {
 
             for r in (i + 1)..n {
                 let factor = data[r * n + i] / pivot;
-                data[r * n + i] = 0.0;
+                data[r * n + i] = Complex64::new(0.0, 0.0);
                 for c in (i + 1)..n {
-                    data[r * n + c] -= factor * data[i * n + c];
+                    let upper = data[i * n + c];
+                    data[r * n + c] -= factor * upper;
                 }
             }
         }
 
-        Ok(sign * det)
+        Ok(Self::from_complex64(det * sign))
     }
 
     fn matrix_inverse(matrix: &Matrix) -> Result<Matrix, CalcError> {
         Self::require_square(matrix, "inverse")?;
         let n = matrix.rows;
-        let mut a = matrix.data.clone();
-        let mut inv = Self::matrix_identity(n).data;
+        let mut a = matrix
+            .data
+            .iter()
+            .map(|v| Self::to_complex64(*v))
+            .collect::<Vec<_>>();
+        let mut inv = Self::matrix_identity(n)
+            .data
+            .iter()
+            .map(|v| Self::to_complex64(*v))
+            .collect::<Vec<_>>();
         let eps = 1e-12;
 
         for i in 0..n {
             let mut pivot_row = i;
-            let mut pivot_abs = a[i * n + i].abs();
+            let mut pivot_abs = a[i * n + i].norm();
             for r in (i + 1)..n {
-                let candidate = a[r * n + i].abs();
+                let candidate = a[r * n + i].norm();
                 if candidate > pivot_abs {
                     pivot_abs = candidate;
                     pivot_row = r;
@@ -1370,17 +1396,22 @@ impl Calculator {
                     continue;
                 }
                 let factor = a[r * n + i];
-                if factor.abs() < eps {
+                if factor.norm() < eps {
                     continue;
                 }
                 for c in 0..n {
-                    a[r * n + c] -= factor * a[i * n + c];
-                    inv[r * n + c] -= factor * inv[i * n + c];
+                    let a_upper = a[i * n + c];
+                    let inv_upper = inv[i * n + c];
+                    a[r * n + c] -= factor * a_upper;
+                    inv[r * n + c] -= factor * inv_upper;
                 }
             }
         }
-
-        Matrix::new(n, n, inv)
+        Matrix::new(
+            n,
+            n,
+            inv.into_iter().map(Self::from_complex64).collect(),
+        )
     }
 
     fn matrix_solve(a: &Matrix, b: &Matrix) -> Result<Matrix, CalcError> {
@@ -1394,15 +1425,23 @@ impl Calculator {
 
         let n = a.rows;
         let rhs_cols = b.cols;
-        let mut a_data = a.data.clone();
-        let mut b_data = b.data.clone();
+        let mut a_data = a
+            .data
+            .iter()
+            .map(|v| Self::to_complex64(*v))
+            .collect::<Vec<_>>();
+        let mut b_data = b
+            .data
+            .iter()
+            .map(|v| Self::to_complex64(*v))
+            .collect::<Vec<_>>();
         let eps = 1e-12;
 
         for i in 0..n {
             let mut pivot_row = i;
-            let mut pivot_abs = a_data[i * n + i].abs();
+            let mut pivot_abs = a_data[i * n + i].norm();
             for r in (i + 1)..n {
-                let candidate = a_data[r * n + i].abs();
+                let candidate = a_data[r * n + i].norm();
                 if candidate > pivot_abs {
                     pivot_abs = candidate;
                     pivot_row = r;
@@ -1427,17 +1466,19 @@ impl Calculator {
             let pivot = a_data[i * n + i];
             for r in (i + 1)..n {
                 let factor = a_data[r * n + i] / pivot;
-                a_data[r * n + i] = 0.0;
+                a_data[r * n + i] = Complex64::new(0.0, 0.0);
                 for c in (i + 1)..n {
-                    a_data[r * n + c] -= factor * a_data[i * n + c];
+                    let upper = a_data[i * n + c];
+                    a_data[r * n + c] -= factor * upper;
                 }
                 for c in 0..rhs_cols {
-                    b_data[r * rhs_cols + c] -= factor * b_data[i * rhs_cols + c];
+                    let rhs_upper = b_data[i * rhs_cols + c];
+                    b_data[r * rhs_cols + c] -= factor * rhs_upper;
                 }
             }
         }
 
-        let mut x_data = vec![0.0; n * rhs_cols];
+        let mut x_data = vec![Complex64::new(0.0, 0.0); n * rhs_cols];
         for rhs_col in 0..rhs_cols {
             for i in (0..n).rev() {
                 let mut sum = b_data[i * rhs_cols + rhs_col];
@@ -1445,7 +1486,7 @@ impl Calculator {
                     sum -= a_data[i * n + j] * x_data[j * rhs_cols + rhs_col];
                 }
                 let pivot = a_data[i * n + i];
-                if pivot.abs() < eps {
+                if pivot.norm() < eps {
                     return Err(CalcError::SingularMatrix(
                         "solve_ax_b failed during back substitution".to_string(),
                     ));
@@ -1453,8 +1494,11 @@ impl Calculator {
                 x_data[i * rhs_cols + rhs_col] = sum / pivot;
             }
         }
-
-        Matrix::new(n, rhs_cols, x_data)
+        Matrix::new(
+            n,
+            rhs_cols,
+            x_data.into_iter().map(Self::from_complex64).collect(),
+        )
     }
 
     fn require_same_shape(a: &Matrix, b: &Matrix, operation: &str) -> Result<(), CalcError> {
@@ -1483,7 +1527,14 @@ mod tests {
     use super::{AngleMode, CalcError, Calculator, Complex, Matrix, Value};
 
     fn matrix(rows: usize, cols: usize, data: &[f64]) -> Matrix {
-        Matrix::new(rows, cols, data.to_vec()).expect("valid matrix")
+        let complex_data = data
+            .iter()
+            .map(|value| Complex {
+                re: *value,
+                im: 0.0,
+            })
+            .collect::<Vec<_>>();
+        Matrix::new(rows, cols, complex_data).expect("valid matrix")
     }
 
     fn assert_real_close(actual: f64, expected: f64, eps: f64) {
@@ -1497,7 +1548,8 @@ mod tests {
         assert_eq!(actual.rows, expected.rows);
         assert_eq!(actual.cols, expected.cols);
         for (a, e) in actual.data.iter().zip(&expected.data) {
-            assert_real_close(*a, *e, eps);
+            assert_real_close(a.re, e.re, eps);
+            assert_real_close(a.im, e.im, eps);
         }
     }
 
@@ -1781,22 +1833,23 @@ mod tests {
     }
 
     #[test]
-    fn matrix_and_complex_multiplication_errors_without_mutation() {
+    fn matrix_and_complex_multiplication_scales_matrix() {
         let mut calc = Calculator::new();
         calc.push_value(Value::Matrix(matrix(1, 1, &[3.0])));
         calc.push_value(Value::Complex(Complex { re: 2.0, im: 1.0 }));
-        let before = calc.state().stack.clone();
 
         let result = calc.mul();
 
+        assert_eq!(result, Ok(()));
         assert_eq!(
-            result,
-            Err(CalcError::TypeMismatch(
-                "* only supports matrix*matrix, matrix*real, or scalar/complex arithmetic"
-                    .to_string()
-            ))
+            calc.state().stack,
+            vec![Value::Matrix(Matrix::new(
+                1,
+                1,
+                vec![Complex { re: 6.0, im: 3.0 }]
+            )
+            .expect("valid matrix"))]
         );
-        assert_eq!(calc.state().stack, before);
     }
 
     #[test]
@@ -1808,7 +1861,10 @@ mod tests {
 
         assert_eq!(result, Ok(()));
         match calc.state().stack.last() {
-            Some(Value::Real(v)) => assert_real_close(*v, -2.0, 1e-12),
+            Some(Value::Complex(v)) => {
+                assert_real_close(v.re, -2.0, 1e-12);
+                assert_real_close(v.im, 0.0, 1e-12);
+            }
             other => panic!("unexpected stack value: {other:?}"),
         }
     }

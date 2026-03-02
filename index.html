@@ -821,7 +821,22 @@
         return `${re} + ${im}i`;
       }
       if (value.type === "matrix") {
-        return `${value.rows}x${value.cols} [${value.data.join(", ")}]`;
+        const formatComplexEntry = (entry) => {
+          const re = Number(entry?.re || 0);
+          const im = Number(entry?.im || 0);
+          if (Math.abs(im) < 1e-12) return re.toString();
+          if (Math.abs(re) < 1e-12) return `${im.toString()}i`;
+          const sign = im >= 0 ? "+" : "-";
+          return `${re.toString()} ${sign} ${Math.abs(im).toString()}i`;
+        };
+        const rows = [];
+        for (let r = 0; r < value.rows; r += 1) {
+          const start = r * value.cols;
+          const end = start + value.cols;
+          const row = (value.data || []).slice(start, end).map(formatComplexEntry).join(", ");
+          rows.push(`[${row}]`);
+        }
+        return `${value.rows}x${value.cols} ${rows.join(" ")}`;
       }
       return JSON.stringify(value);
     }
@@ -945,7 +960,7 @@
           if (!Number.isFinite(value)) {
             return { error: `invalid numeric value: ${token}` };
           }
-          data.push(value);
+          data.push({ re: value, im: 0 });
         }
       }
       return {

@@ -45,6 +45,7 @@ Matrix input format:
 - Values separated by spaces or commas
 - Values are parsed when you press `Push A` / `Push B` (free-form text allowed while typing)
 - Scientific notation is supported in values (e.g. `-1.2E-3`)
+- Matrix entries are cast to complex values on push (`x` becomes `x + 0i`)
 - Keyboard focus in matrix/complex text fields captures typing (calculator hotkeys are suppressed there)
 - Use `Shift+Enter` for explicit newline entry while editing matrices
 
