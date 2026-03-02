@@ -58,6 +58,7 @@ pub enum CalcError {
     TypeMismatch(String),
     DomainError(String),
     DivideByZero,
+    SingularMatrix(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -363,6 +364,33 @@ impl Calculator {
         Ok(())
     }
 
+    pub fn determinant(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_determinant(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "determinant requires a matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn inverse(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Matrix(Self::matrix_inverse(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "inverse requires a matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn solve_ax_b(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_solve(a, b)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "solve_ax_b requires two matrix operands (A then B)".to_string(),
+            )),
+        })
+    }
+
     fn require_stack_len(&self, needed: usize) -> Result<(), CalcError> {
         let available = self.state.stack.len();
         if available < needed {
@@ -525,11 +553,195 @@ impl Calculator {
         }
     }
 
+    fn matrix_determinant(matrix: &Matrix) -> Result<f64, CalcError> {
+        Self::require_square(matrix, "determinant")?;
+        let n = matrix.rows;
+        let mut data = matrix.data.clone();
+        let mut sign = 1.0;
+        let mut det = 1.0;
+        let eps = 1e-12;
+
+        for i in 0..n {
+            let mut pivot_row = i;
+            let mut pivot_abs = data[i * n + i].abs();
+            for r in (i + 1)..n {
+                let candidate = data[r * n + i].abs();
+                if candidate > pivot_abs {
+                    pivot_abs = candidate;
+                    pivot_row = r;
+                }
+            }
+
+            if pivot_abs < eps {
+                return Ok(0.0);
+            }
+
+            if pivot_row != i {
+                for c in 0..n {
+                    data.swap(i * n + c, pivot_row * n + c);
+                }
+                sign *= -1.0;
+            }
+
+            let pivot = data[i * n + i];
+            det *= pivot;
+
+            for r in (i + 1)..n {
+                let factor = data[r * n + i] / pivot;
+                data[r * n + i] = 0.0;
+                for c in (i + 1)..n {
+                    data[r * n + c] -= factor * data[i * n + c];
+                }
+            }
+        }
+
+        Ok(sign * det)
+    }
+
+    fn matrix_inverse(matrix: &Matrix) -> Result<Matrix, CalcError> {
+        Self::require_square(matrix, "inverse")?;
+        let n = matrix.rows;
+        let mut a = matrix.data.clone();
+        let mut inv = Self::matrix_identity(n).data;
+        let eps = 1e-12;
+
+        for i in 0..n {
+            let mut pivot_row = i;
+            let mut pivot_abs = a[i * n + i].abs();
+            for r in (i + 1)..n {
+                let candidate = a[r * n + i].abs();
+                if candidate > pivot_abs {
+                    pivot_abs = candidate;
+                    pivot_row = r;
+                }
+            }
+
+            if pivot_abs < eps {
+                return Err(CalcError::SingularMatrix(
+                    "inverse is undefined for singular matrices".to_string(),
+                ));
+            }
+
+            if pivot_row != i {
+                for c in 0..n {
+                    a.swap(i * n + c, pivot_row * n + c);
+                    inv.swap(i * n + c, pivot_row * n + c);
+                }
+            }
+
+            let pivot = a[i * n + i];
+            for c in 0..n {
+                a[i * n + c] /= pivot;
+                inv[i * n + c] /= pivot;
+            }
+
+            for r in 0..n {
+                if r == i {
+                    continue;
+                }
+                let factor = a[r * n + i];
+                if factor.abs() < eps {
+                    continue;
+                }
+                for c in 0..n {
+                    a[r * n + c] -= factor * a[i * n + c];
+                    inv[r * n + c] -= factor * inv[i * n + c];
+                }
+            }
+        }
+
+        Matrix::new(n, n, inv)
+    }
+
+    fn matrix_solve(a: &Matrix, b: &Matrix) -> Result<Matrix, CalcError> {
+        Self::require_square(a, "solve_ax_b left operand")?;
+        if a.rows != b.rows {
+            return Err(CalcError::DimensionMismatch {
+                expected: a.rows,
+                actual: b.rows,
+            });
+        }
+
+        let n = a.rows;
+        let rhs_cols = b.cols;
+        let mut a_data = a.data.clone();
+        let mut b_data = b.data.clone();
+        let eps = 1e-12;
+
+        for i in 0..n {
+            let mut pivot_row = i;
+            let mut pivot_abs = a_data[i * n + i].abs();
+            for r in (i + 1)..n {
+                let candidate = a_data[r * n + i].abs();
+                if candidate > pivot_abs {
+                    pivot_abs = candidate;
+                    pivot_row = r;
+                }
+            }
+
+            if pivot_abs < eps {
+                return Err(CalcError::SingularMatrix(
+                    "solve_ax_b failed: singular coefficient matrix".to_string(),
+                ));
+            }
+
+            if pivot_row != i {
+                for c in 0..n {
+                    a_data.swap(i * n + c, pivot_row * n + c);
+                }
+                for c in 0..rhs_cols {
+                    b_data.swap(i * rhs_cols + c, pivot_row * rhs_cols + c);
+                }
+            }
+
+            let pivot = a_data[i * n + i];
+            for r in (i + 1)..n {
+                let factor = a_data[r * n + i] / pivot;
+                a_data[r * n + i] = 0.0;
+                for c in (i + 1)..n {
+                    a_data[r * n + c] -= factor * a_data[i * n + c];
+                }
+                for c in 0..rhs_cols {
+                    b_data[r * rhs_cols + c] -= factor * b_data[i * rhs_cols + c];
+                }
+            }
+        }
+
+        let mut x_data = vec![0.0; n * rhs_cols];
+        for rhs_col in 0..rhs_cols {
+            for i in (0..n).rev() {
+                let mut sum = b_data[i * rhs_cols + rhs_col];
+                for j in (i + 1)..n {
+                    sum -= a_data[i * n + j] * x_data[j * rhs_cols + rhs_col];
+                }
+                let pivot = a_data[i * n + i];
+                if pivot.abs() < eps {
+                    return Err(CalcError::SingularMatrix(
+                        "solve_ax_b failed during back substitution".to_string(),
+                    ));
+                }
+                x_data[i * rhs_cols + rhs_col] = sum / pivot;
+            }
+        }
+
+        Matrix::new(n, rhs_cols, x_data)
+    }
+
     fn require_same_shape(a: &Matrix, b: &Matrix, operation: &str) -> Result<(), CalcError> {
         if a.rows != b.rows || a.cols != b.cols {
             return Err(CalcError::TypeMismatch(format!(
                 "{operation} requires equal matrix dimensions: left is {}x{}, right is {}x{}",
                 a.rows, a.cols, b.rows, b.cols
+            )));
+        }
+        Ok(())
+    }
+
+    fn require_square(matrix: &Matrix, operation: &str) -> Result<(), CalcError> {
+        if matrix.rows != matrix.cols {
+            return Err(CalcError::TypeMismatch(format!(
+                "{operation} requires a square matrix but got {}x{}",
+                matrix.rows, matrix.cols
             )));
         }
         Ok(())
@@ -542,6 +754,21 @@ mod tests {
 
     fn matrix(rows: usize, cols: usize, data: &[f64]) -> Matrix {
         Matrix::new(rows, cols, data.to_vec()).expect("valid matrix")
+    }
+
+    fn assert_real_close(actual: f64, expected: f64, eps: f64) {
+        assert!(
+            (actual - expected).abs() <= eps,
+            "expected {expected}, got {actual}"
+        );
+    }
+
+    fn assert_matrix_close(actual: &Matrix, expected: &Matrix, eps: f64) {
+        assert_eq!(actual.rows, expected.rows);
+        assert_eq!(actual.cols, expected.cols);
+        for (a, e) in actual.data.iter().zip(&expected.data) {
+            assert_real_close(*a, *e, eps);
+        }
     }
 
     #[test]
@@ -838,6 +1065,91 @@ mod tests {
                 "* only supports matrix*matrix, matrix*real, or scalar/complex arithmetic"
                     .to_string()
             ))
+        );
+        assert_eq!(calc.state().stack, before);
+    }
+
+    #[test]
+    fn determinant_of_square_matrix() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[1.0, 2.0, 3.0, 4.0])));
+
+        let result = calc.determinant();
+
+        assert_eq!(result, Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Real(v)) => assert_real_close(*v, -2.0, 1e-12),
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn inverse_of_square_matrix() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[4.0, 7.0, 2.0, 6.0])));
+
+        let result = calc.inverse();
+
+        assert_eq!(result, Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Matrix(actual)) => {
+                let expected = matrix(2, 2, &[0.6, -0.7, -0.2, 0.4]);
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn solve_ax_b_with_vector_rhs() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[3.0, 2.0, 1.0, 2.0])));
+        calc.push_value(Value::Matrix(matrix(2, 1, &[5.0, 5.0])));
+
+        let result = calc.solve_ax_b();
+
+        assert_eq!(result, Ok(()));
+        match calc.state().stack.last() {
+            Some(Value::Matrix(actual)) => {
+                let expected = matrix(2, 1, &[0.0, 2.5]);
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("unexpected stack value: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn inverse_of_singular_matrix_preserves_stack() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[1.0, 2.0, 2.0, 4.0])));
+        let before = calc.state().stack.clone();
+
+        let result = calc.inverse();
+
+        assert_eq!(
+            result,
+            Err(CalcError::SingularMatrix(
+                "inverse is undefined for singular matrices".to_string()
+            ))
+        );
+        assert_eq!(calc.state().stack, before);
+    }
+
+    #[test]
+    fn solve_ax_b_dimension_mismatch_preserves_stack() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[1.0, 0.0, 0.0, 1.0])));
+        calc.push_value(Value::Matrix(matrix(3, 1, &[1.0, 2.0, 3.0])));
+        let before = calc.state().stack.clone();
+
+        let result = calc.solve_ax_b();
+
+        assert_eq!(
+            result,
+            Err(CalcError::DimensionMismatch {
+                expected: 2,
+                actual: 3
+            })
         );
         assert_eq!(calc.state().stack, before);
     }
