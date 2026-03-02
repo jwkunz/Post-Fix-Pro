@@ -218,6 +218,53 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .matrix-presets {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .matrix-presets .identity {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 8px;
+      align-items: center;
+      grid-column: span 2;
+    }
+
+    .matrix-presets input,
+    .complex-tools input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fff;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+    }
+
+    .complex-tools {
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .complex-tools h3 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .complex-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+    }
+
     @media (max-width: 860px) {
       .app {
         grid-template-columns: 1fr;
@@ -295,6 +342,22 @@
           <button class="fn" id="push-b-btn">Push B</button>
           <button class="op" id="solve-btn">Solve A*x=B</button>
         </div>
+        <div class="matrix-presets">
+          <button class="fn" id="preset-a-btn">Preset A 2x2</button>
+          <button class="fn" id="preset-b-btn">Preset B vec</button>
+          <div class="identity">
+            <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
+            <button class="fn" id="push-identity-btn">Push I(n)</button>
+          </div>
+        </div>
+      </section>
+      <section class="complex-tools">
+        <h3>Complex Entry</h3>
+        <div class="complex-row">
+          <input id="complex-re-input" type="number" step="any" value="0" aria-label="Complex real part">
+          <input id="complex-im-input" type="number" step="any" value="1" aria-label="Complex imaginary part">
+          <button class="fn" id="push-complex-btn">Push a+bi</button>
+        </div>
       </section>
       <p class="hint" id="runtime-hint">
         Loading WASM runtime...
@@ -314,6 +377,13 @@
     const pushABtn = document.getElementById("push-a-btn");
     const pushBBtn = document.getElementById("push-b-btn");
     const solveBtn = document.getElementById("solve-btn");
+    const presetABtn = document.getElementById("preset-a-btn");
+    const presetBBtn = document.getElementById("preset-b-btn");
+    const identitySizeInput = document.getElementById("identity-size-input");
+    const pushIdentityBtn = document.getElementById("push-identity-btn");
+    const complexReInput = document.getElementById("complex-re-input");
+    const complexImInput = document.getElementById("complex-im-input");
+    const pushComplexBtn = document.getElementById("push-complex-btn");
 
     let wasmCalc = null;
     let entryBuffer = "";
@@ -445,6 +515,25 @@
       call("push_matrix_json", JSON.stringify(parsed.matrix));
     }
 
+    function pushComplexFromInputs() {
+      const re = Number(complexReInput.value);
+      const im = Number(complexImInput.value);
+      if (!Number.isFinite(re) || !Number.isFinite(im)) {
+        setError("complex entry must contain valid numeric real and imaginary parts");
+        return;
+      }
+      call("push_complex", re, im);
+    }
+
+    function pushIdentityFromInput() {
+      const size = Number(identitySizeInput.value);
+      if (!Number.isInteger(size) || size <= 0) {
+        setError("identity size must be a positive integer");
+        return;
+      }
+      call("push_identity", size);
+    }
+
     function handleAction(action) {
       if (!wasmCalc) return;
       if (action === "decimal") {
@@ -536,6 +625,26 @@
     solveBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       handleAction("solve");
+    });
+
+    presetABtn.addEventListener("click", () => {
+      matrixAInput.value = "1 2\n3 4";
+      setError("");
+    });
+
+    presetBBtn.addEventListener("click", () => {
+      matrixBInput.value = "5\n6";
+      setError("");
+    });
+
+    pushIdentityBtn.addEventListener("click", () => {
+      if (!wasmCalc) return;
+      pushIdentityFromInput();
+    });
+
+    pushComplexBtn.addEventListener("click", () => {
+      if (!wasmCalc) return;
+      pushComplexFromInputs();
     });
 
     window.addEventListener("keydown", (event) => {

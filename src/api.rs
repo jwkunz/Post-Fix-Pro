@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{AngleMode, CalcError, Calculator, DisplayMode, Matrix, Value};
+use crate::{AngleMode, CalcError, Calculator, Complex, DisplayMode, Matrix, Value};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -55,6 +55,12 @@ pub struct MatrixInput {
     pub data: Vec<f64>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ComplexInput {
+    pub re: f64,
+    pub im: f64,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct CalculatorApi {
     calculator: Calculator,
@@ -94,6 +100,14 @@ impl CalculatorApi {
 
     pub fn push_real(&mut self, value: f64) -> ApiResponse {
         self.calculator.push_value(Value::Real(value));
+        self.success()
+    }
+
+    pub fn push_complex(&mut self, complex: ComplexInput) -> ApiResponse {
+        self.calculator.push_value(Value::Complex(Complex {
+            re: complex.re,
+            im: complex.im,
+        }));
         self.success()
     }
 
@@ -177,6 +191,11 @@ impl CalculatorApi {
 
     pub fn solve_ax_b(&mut self) -> ApiResponse {
         let result = self.calculator.solve_ax_b();
+        self.wrap(result)
+    }
+
+    pub fn push_identity(&mut self, size: usize) -> ApiResponse {
+        let result = self.calculator.push_identity(size);
         self.wrap(result)
     }
 
@@ -274,7 +293,7 @@ fn to_api_error(error: CalcError) -> ApiError {
 mod wasm {
     use wasm_bindgen::prelude::wasm_bindgen;
 
-    use super::{ApiAngleMode, CalculatorApi, MatrixInput};
+    use super::{ApiAngleMode, CalculatorApi, ComplexInput, MatrixInput};
 
     #[wasm_bindgen]
     pub struct WasmCalculator {
@@ -355,6 +374,11 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn push_complex(&mut self, re: f64, im: f64) -> String {
+            serde_json::to_string(&self.inner.push_complex(ComplexInput { re, im }))
+                .expect("response serialization should succeed")
+        }
+
         pub fn push_matrix_json(&mut self, matrix_json: &str) -> String {
             let parsed: Result<MatrixInput, _> = serde_json::from_str(matrix_json);
             match parsed {
@@ -390,12 +414,17 @@ mod wasm {
             serde_json::to_string(&self.inner.solve_ax_b())
                 .expect("response serialization should succeed")
         }
+
+        pub fn push_identity(&mut self, size: usize) -> String {
+            serde_json::to_string(&self.inner.push_identity(size))
+                .expect("response serialization should succeed")
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ApiAngleMode, ApiValue, CalculatorApi, MatrixInput};
+    use super::{ApiAngleMode, ApiValue, CalculatorApi, ComplexInput, MatrixInput};
 
     #[test]
     fn successful_operation_returns_ok_with_updated_state() {
@@ -457,6 +486,36 @@ mod tests {
                 rows: 2,
                 cols: 2,
                 data: vec![1.0, 2.0, 3.0, 4.0]
+            }]
+        );
+    }
+
+    #[test]
+    fn push_complex_adds_complex_to_stack() {
+        let mut api = CalculatorApi::new();
+
+        let response = api.push_complex(ComplexInput { re: 1.5, im: -2.0 });
+
+        assert!(response.ok);
+        assert_eq!(
+            response.state.stack,
+            vec![ApiValue::Complex { re: 1.5, im: -2.0 }]
+        );
+    }
+
+    #[test]
+    fn push_identity_adds_identity_matrix() {
+        let mut api = CalculatorApi::new();
+
+        let response = api.push_identity(2);
+
+        assert!(response.ok);
+        assert_eq!(
+            response.state.stack,
+            vec![ApiValue::Matrix {
+                rows: 2,
+                cols: 2,
+                data: vec![1.0, 0.0, 0.0, 1.0]
             }]
         );
     }
