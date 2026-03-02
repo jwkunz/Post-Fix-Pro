@@ -1,3 +1,5 @@
+pub mod api;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Real(f64),
