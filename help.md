@@ -23,9 +23,8 @@ Stack labels:
 - `Rot`: rotate top three values
 - `+/-`: toggle sign on current entry
 - `/`, `*`, `-`, `+`: arithmetic
-- `0..9`, `.`: number entry
+- `0..9`, `.`, `EXP`: number entry (`EXP` inserts `E` for scientific notation, e.g. `2.3E3`)
 - `Enter`: push entry buffer onto stack
-- `EXP`: compute `10^x` on top stack value
 
 ## Matrix Panel
 
@@ -45,6 +44,7 @@ Matrix input format:
 - One row per line
 - Values separated by spaces or commas
 - Values are parsed when you press `Push A` / `Push B` (free-form text allowed while typing)
+- Scientific notation is supported in values (e.g. `-1.2E-3`)
 - Keyboard focus in matrix/complex text fields captures typing (calculator hotkeys are suppressed there)
 - Use `Shift+Enter` for explicit newline entry while editing matrices
 
@@ -90,6 +90,7 @@ Example:
   - `a + bi`: enter real and imaginary parts directly
   - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
 - Complex fields accept free-form text while typing; parsing/validation happens when pressing `Push ...`
+- Scientific notation is supported in complex fields (e.g. `2.5E2`)
 - `Push ...`: pushes the converted complex value onto the stack
 
 ### Integer / Number Tools
@@ -117,6 +118,7 @@ Example:
 
 - `0-9`: append digit to entry
 - `.`: decimal point
+- `e`/`E`: exponent marker in scalar entry
 - `Enter`: push entry
 - `Backspace`: remove one character from entry
 - `+`, `-`, `*`, `/`: arithmetic

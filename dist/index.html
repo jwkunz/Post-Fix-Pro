@@ -576,7 +576,7 @@
         <button data-digit="3">3</button>
         <button class="wide" data-digit="0">0</button>
         <button data-action="decimal">.</button>
-        <button class="fn" data-action="exp10">EXP</button>
+        <button class="fn" data-action="insert-exp">EXP</button>
       </div>
     </section>
 
@@ -875,6 +875,28 @@
       call("entry_set", entryBuffer);
     }
 
+    function isValidEntryCandidate(candidate) {
+      if (!/^[+-]?(\d+(\.\d*)?|\.\d*)?([eE][+-]?\d*)?$/.test(candidate)) {
+        return false;
+      }
+      const expIndex = candidate.search(/[eE]/);
+      if (expIndex >= 0) {
+        const mantissa = candidate.slice(0, expIndex);
+        if (!/[0-9]/.test(mantissa)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function appendEntryChar(char) {
+      const candidate = `${entryBuffer}${char}`;
+      if (!isValidEntryCandidate(candidate)) return false;
+      entryBuffer = candidate;
+      syncEntry();
+      return true;
+    }
+
     function commitEntryIfNeeded() {
       if (!entryBuffer.trim()) return true;
       const response = call("enter");
@@ -1094,8 +1116,11 @@
     function handleAction(action) {
       if (!wasmCalc) return;
       if (action === "decimal") {
-        if (!entryBuffer.includes(".")) entryBuffer = entryBuffer ? `${entryBuffer}.` : "0.";
-        syncEntry();
+        appendEntryChar(".");
+        return;
+      }
+      if (action === "insert-exp") {
+        appendEntryChar("E");
         return;
       }
       if (action === "backspace") {
@@ -1365,10 +1390,19 @@
         }
         clearPendingCommand();
       }
-      if (event.key >= "0" && event.key <= "9") {
-        entryBuffer += event.key;
-        syncEntry();
-        return;
+      if (event.key.length === 1) {
+        if (event.key === "+" || event.key === "-") {
+          const last = entryBuffer.slice(-1);
+          if (last === "E" || last === "e") {
+            if (appendEntryChar(event.key)) {
+              event.preventDefault();
+              return;
+            }
+          }
+        } else if (appendEntryChar(event.key)) {
+          event.preventDefault();
+          return;
+        }
       }
       if (event.key === "Delete") {
         event.preventDefault();
