@@ -10,6 +10,7 @@ Stack labels:
 
 - `T`: top of stack
 - `#n`: lower stack positions
+- `Visible` dial (1-64): controls how many top stack frames are shown; hidden values remain on the stack
 
 ## Scalar Keypad
 
