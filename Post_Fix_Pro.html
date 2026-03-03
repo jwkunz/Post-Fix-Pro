@@ -902,6 +902,12 @@
     let pendingCommand = null;
     let hypMode = false;
     const stackRoleLabels = new Map();
+    const decompositionRoleMap = {
+      qr: ["Q", "R"],
+      lu: ["P", "L", "U"],
+      svd: ["U", "S", "Vt"],
+      evd: ["V", "D"],
+    };
     let helpLoaded = false;
     let isEntryEditing = false;
 
@@ -944,6 +950,21 @@
       return JSON.stringify(value);
     }
 
+    function clearStackRoleLabels() {
+      stackRoleLabels.clear();
+    }
+
+    function applyDecompositionLabels(methodName, state) {
+      clearStackRoleLabels();
+      const roles = decompositionRoleMap[methodName];
+      const stackLength = state?.stack?.length || 0;
+      if (!roles || stackLength <= 0 || stackLength < roles.length) return;
+      const start = stackLength - roles.length;
+      roles.forEach((role, index) => {
+        stackRoleLabels.set(start + index, role);
+      });
+    }
+
     function renderState(state) {
       lastState = state;
       if (!isEntryEditing) {
@@ -960,6 +981,13 @@
         const stackIndex = document.createElement("span");
         stackIndex.className = "idx";
         stackIndex.textContent = idx === bottomFirst.length - 1 ? "T" : `#${idx}`;
+        const role = stackRoleLabels.get(idx);
+        if (role) {
+          const roleBadge = document.createElement("span");
+          roleBadge.className = "stack-role";
+          roleBadge.textContent = role;
+          stackIndex.appendChild(roleBadge);
+        }
         const val = document.createElement("span");
         val.textContent = formatApiValue(value);
         li.append(stackIndex, val);
@@ -991,7 +1019,7 @@
 
     function call(methodName, ...args) {
       if (!wasmCalc || typeof wasmCalc[methodName] !== "function") {
-        setError(`runtime method missing: `);
+        setError(`runtime method missing: ${methodName}`);
         return null;
       }
       const response = parseResponse(wasmCalc[methodName](...args));
