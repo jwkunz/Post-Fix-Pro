@@ -1,3 +1,4 @@
+use nalgebra::{DMatrix, DVector, Vector3};
 use num_complex::Complex64;
 
 pub mod api;
@@ -139,16 +140,12 @@ impl Calculator {
 
     pub fn enter(&mut self) -> Result<(), CalcError> {
         if self.state.entry_buffer.trim().is_empty() {
-            return Err(CalcError::InvalidInput(
-                "entry buffer is empty".to_string(),
-            ));
+            return Err(CalcError::InvalidInput("entry buffer is empty".to_string()));
         }
 
-        let value = self
-            .state
-            .entry_buffer
-            .parse::<f64>()
-            .map_err(|_| CalcError::InvalidInput("entry buffer is not a valid number".to_string()))?;
+        let value = self.state.entry_buffer.parse::<f64>().map_err(|_| {
+            CalcError::InvalidInput("entry buffer is not a valid number".to_string())
+        })?;
 
         self.state.stack.push(Value::Real(value));
         self.state.entry_buffer.clear();
@@ -214,10 +211,15 @@ impl Calculator {
     pub fn add(&mut self) -> Result<(), CalcError> {
         self.apply_binary_op(|left, right| match (left, right) {
             (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_add(a, b)?)),
+            (Value::Matrix(a), scalar) => {
+                let scalar = Self::as_complex(scalar, "+")?;
+                Ok(Value::Matrix(Self::matrix_scalar_add(a, scalar)))
+            }
+            (scalar, Value::Matrix(b)) => {
+                let scalar = Self::as_complex(scalar, "+")?;
+                Ok(Value::Matrix(Self::matrix_scalar_add(b, scalar)))
+            }
             (Value::Real(a), Value::Real(b)) => Ok(Value::Real(a + b)),
-            (Value::Matrix(_), _) | (_, Value::Matrix(_)) => Err(CalcError::TypeMismatch(
-                "+ only supports matrix+matrix or scalar/complex arithmetic".to_string(),
-            )),
             _ => {
                 let left = Self::as_complex(left, "+")?;
                 let right = Self::as_complex(right, "+")?;
@@ -232,10 +234,15 @@ impl Calculator {
     pub fn sub(&mut self) -> Result<(), CalcError> {
         self.apply_binary_op(|left, right| match (left, right) {
             (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_sub(a, b)?)),
+            (Value::Matrix(a), scalar) => {
+                let scalar = Self::as_complex(scalar, "-")?;
+                Ok(Value::Matrix(Self::matrix_scalar_sub(a, scalar)))
+            }
+            (scalar, Value::Matrix(b)) => {
+                let scalar = Self::as_complex(scalar, "-")?;
+                Ok(Value::Matrix(Self::matrix_scalar_lsub(scalar, b)))
+            }
             (Value::Real(a), Value::Real(b)) => Ok(Value::Real(a - b)),
-            (Value::Matrix(_), _) | (_, Value::Matrix(_)) => Err(CalcError::TypeMismatch(
-                "- only supports matrix-matrix or scalar/complex arithmetic".to_string(),
-            )),
             _ => {
                 let left = Self::as_complex(left, "-")?;
                 let right = Self::as_complex(right, "-")?;
@@ -272,7 +279,15 @@ impl Calculator {
 
     pub fn div(&mut self) -> Result<(), CalcError> {
         self.apply_binary_op(|left, right| match (left, right) {
-            (Value::Real(_,), Value::Real(b)) if *b == 0.0 => Err(CalcError::DivideByZero),
+            (Value::Real(_), Value::Real(b)) if *b == 0.0 => Err(CalcError::DivideByZero),
+            (Value::Matrix(a), scalar) => {
+                let scalar = Self::as_complex(scalar, "/")?;
+                Ok(Value::Matrix(Self::matrix_scalar_div(a, scalar)?))
+            }
+            (scalar, Value::Matrix(b)) => {
+                let scalar = Self::as_complex(scalar, "/")?;
+                Ok(Value::Matrix(Self::matrix_scalar_ldiv(scalar, b)?))
+            }
             (Value::Real(a), Value::Real(b)) => Ok(Value::Real(a / b)),
             _ => {
                 let left = Self::as_complex(left, "/")?;
@@ -372,14 +387,15 @@ impl Calculator {
             Value::Complex(c) => {
                 let numerator = Self::complex_sin(*c);
                 let denominator = Self::complex_cos(*c);
-                let denom_norm =
-                    denominator.re * denominator.re + denominator.im * denominator.im;
+                let denom_norm = denominator.re * denominator.re + denominator.im * denominator.im;
                 if denom_norm == 0.0 {
                     return Err(CalcError::DivideByZero);
                 }
                 Ok(Value::Complex(Complex {
-                    re: (numerator.re * denominator.re + numerator.im * denominator.im) / denom_norm,
-                    im: (numerator.im * denominator.re - numerator.re * denominator.im) / denom_norm,
+                    re: (numerator.re * denominator.re + numerator.im * denominator.im)
+                        / denom_norm,
+                    im: (numerator.im * denominator.re - numerator.re * denominator.im)
+                        / denom_norm,
                 }))
             }
             Value::Matrix(_) => Err(CalcError::TypeMismatch(
@@ -575,6 +591,14 @@ impl Calculator {
 
     pub fn pow(&mut self) -> Result<(), CalcError> {
         self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(a), scalar) => {
+                let scalar = Self::as_complex(scalar, "pow")?;
+                Ok(Value::Matrix(Self::matrix_scalar_pow(a, scalar)))
+            }
+            (scalar, Value::Matrix(b)) => {
+                let scalar = Self::as_complex(scalar, "pow")?;
+                Ok(Value::Matrix(Self::matrix_scalar_lpow(scalar, b)))
+            }
             (Value::Real(base), Value::Real(exp)) => Ok(Value::Real(base.powf(*exp))),
             _ => {
                 let left = Self::as_complex(left, "pow")?;
@@ -642,7 +666,8 @@ impl Calculator {
             _ => {
                 let x = Self::as_complex(left, "root")?;
                 let y = Self::as_complex(right, "root")?;
-                let out = Self::to_complex64(x).powc(Complex64::new(1.0, 0.0) / Self::to_complex64(y));
+                let out =
+                    Self::to_complex64(x).powc(Complex64::new(1.0, 0.0) / Self::to_complex64(y));
                 Ok(Value::Complex(Self::from_complex64(out)))
             }
         })
@@ -760,9 +785,7 @@ impl Calculator {
                 im: -c.im,
             })),
             Value::Real(v) => Ok(Value::Real(*v)),
-            Value::Matrix(_) => Err(CalcError::TypeMismatch(
-                "conjugate does not support matrix values".to_string(),
-            )),
+            Value::Matrix(matrix) => Ok(Value::Matrix(Self::matrix_conjugate(matrix))),
         })
     }
 
@@ -979,7 +1002,9 @@ impl Calculator {
                 "identity matrix size must be non-zero".to_string(),
             ));
         }
-        self.state.stack.push(Value::Matrix(Self::matrix_identity(size)));
+        self.state
+            .stack
+            .push(Value::Matrix(Self::matrix_identity(size)));
         Ok(())
     }
 
@@ -1010,6 +1035,47 @@ impl Calculator {
         })
     }
 
+    pub fn dot(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Complex(Self::matrix_dot(a, b)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "dot requires two vector matrices".to_string(),
+            )),
+        })
+    }
+
+    pub fn cross(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(a), Value::Matrix(b)) => Ok(Value::Matrix(Self::matrix_cross(a, b)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "cross requires two 3-element vector matrices".to_string(),
+            )),
+        })
+    }
+
+    pub fn trace(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Complex(Self::matrix_trace(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "trace requires a matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn norm_p(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(matrix), Value::Real(p)) => {
+                Ok(Value::Real(Self::matrix_p_norm(matrix, *p)?))
+            }
+            (Value::Matrix(matrix), Value::Complex(p)) if p.im.abs() <= 1e-12 => {
+                Ok(Value::Real(Self::matrix_p_norm(matrix, p.re)?))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "norm_p requires a matrix followed by a real p value".to_string(),
+            )),
+        })
+    }
+
     fn require_stack_len(&self, needed: usize) -> Result<(), CalcError> {
         let available = self.state.stack.len();
         if available < needed {
@@ -1025,7 +1091,11 @@ impl Calculator {
     {
         self.require_stack_len(1)?;
         let len = self.state.stack.len();
-        let value = self.state.stack.get(len - 1).expect("prechecked stack length");
+        let value = self
+            .state
+            .stack
+            .get(len - 1)
+            .expect("prechecked stack length");
         let result = op(value)?;
         self.state.stack[len - 1] = result;
         Ok(())
@@ -1037,8 +1107,16 @@ impl Calculator {
     {
         self.require_stack_len(2)?;
         let len = self.state.stack.len();
-        let left = self.state.stack.get(len - 2).expect("prechecked stack length");
-        let right = self.state.stack.get(len - 1).expect("prechecked stack length");
+        let left = self
+            .state
+            .stack
+            .get(len - 2)
+            .expect("prechecked stack length");
+        let right = self
+            .state
+            .stack
+            .get(len - 1)
+            .expect("prechecked stack length");
         let result = op(left, right)?;
         self.state.stack.truncate(len - 2);
         self.state.stack.push(result);
@@ -1117,7 +1195,9 @@ impl Calculator {
             return Err(CalcError::InvalidInput(format!("{label} must be finite")));
         }
         if value.fract() != 0.0 {
-            return Err(CalcError::InvalidInput(format!("{label} must be an integer")));
+            return Err(CalcError::InvalidInput(format!(
+                "{label} must be an integer"
+            )));
         }
         if value < i64::MIN as f64 || value > i64::MAX as f64 {
             return Err(CalcError::InvalidInput(format!("{label} is out of range")));
@@ -1128,7 +1208,9 @@ impl Calculator {
     fn as_non_negative_integer(value: f64, label: &str) -> Result<u64, CalcError> {
         let int = Self::as_integer(value, label)?;
         if int < 0 {
-            return Err(CalcError::DomainError(format!("{label} must be non-negative")));
+            return Err(CalcError::DomainError(format!(
+                "{label} must be non-negative"
+            )));
         }
         Ok(int as u64)
     }
@@ -1270,6 +1352,211 @@ impl Calculator {
         }
     }
 
+    fn matrix_scalar_add(matrix: &Matrix, scalar: Complex) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(Self::to_complex64(*value) + scalar))
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_scalar_sub(matrix: &Matrix, scalar: Complex) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(Self::to_complex64(*value) - scalar))
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_scalar_lsub(scalar: Complex, matrix: &Matrix) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(scalar - Self::to_complex64(*value)))
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_scalar_div(matrix: &Matrix, scalar: Complex) -> Result<Matrix, CalcError> {
+        let scalar = Self::to_complex64(scalar);
+        if scalar.norm() == 0.0 {
+            return Err(CalcError::DivideByZero);
+        }
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(Self::to_complex64(*value) / scalar))
+            .collect();
+        Ok(Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        })
+    }
+
+    fn matrix_scalar_ldiv(scalar: Complex, matrix: &Matrix) -> Result<Matrix, CalcError> {
+        let scalar = Self::to_complex64(scalar);
+        let mut data = Vec::with_capacity(matrix.data.len());
+        for value in &matrix.data {
+            let denom = Self::to_complex64(*value);
+            if denom.norm() == 0.0 {
+                return Err(CalcError::DivideByZero);
+            }
+            data.push(Self::from_complex64(scalar / denom));
+        }
+        Ok(Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        })
+    }
+
+    fn matrix_scalar_pow(matrix: &Matrix, scalar: Complex) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(Self::to_complex64(*value).powc(scalar)))
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_scalar_lpow(scalar: Complex, matrix: &Matrix) -> Matrix {
+        let scalar = Self::to_complex64(scalar);
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::from_complex64(scalar.powc(Self::to_complex64(*value))))
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_conjugate(matrix: &Matrix) -> Matrix {
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Complex {
+                re: value.re,
+                im: -value.im,
+            })
+            .collect();
+        Matrix {
+            rows: matrix.rows,
+            cols: matrix.cols,
+            data,
+        }
+    }
+
+    fn matrix_to_dmatrix(matrix: &Matrix) -> DMatrix<Complex64> {
+        let data = matrix
+            .data
+            .iter()
+            .map(|value| Self::to_complex64(*value))
+            .collect::<Vec<_>>();
+        DMatrix::from_row_slice(matrix.rows, matrix.cols, &data)
+    }
+
+    fn matrix_vector(matrix: &Matrix) -> Result<DVector<Complex64>, CalcError> {
+        if matrix.rows == 1 || matrix.cols == 1 {
+            let data = matrix
+                .data
+                .iter()
+                .map(|value| Self::to_complex64(*value))
+                .collect::<Vec<_>>();
+            Ok(DVector::from_vec(data))
+        } else {
+            Err(CalcError::TypeMismatch(format!(
+                "expected vector shape Nx1 or 1xN, got {}x{}",
+                matrix.rows, matrix.cols
+            )))
+        }
+    }
+
+    fn matrix_dot(a: &Matrix, b: &Matrix) -> Result<Complex, CalcError> {
+        let a_vec = Self::matrix_vector(a)?;
+        let b_vec = Self::matrix_vector(b)?;
+        if a_vec.len() != b_vec.len() {
+            return Err(CalcError::DimensionMismatch {
+                expected: a_vec.len(),
+                actual: b_vec.len(),
+            });
+        }
+        Ok(Self::from_complex64(a_vec.dotc(&b_vec)))
+    }
+
+    fn matrix_cross(a: &Matrix, b: &Matrix) -> Result<Matrix, CalcError> {
+        let a_vec = Self::matrix_vector(a)?;
+        let b_vec = Self::matrix_vector(b)?;
+        if a_vec.len() != 3 || b_vec.len() != 3 {
+            return Err(CalcError::TypeMismatch(
+                "cross requires two vectors with exactly 3 elements".to_string(),
+            ));
+        }
+
+        let av = Vector3::new(a_vec[0], a_vec[1], a_vec[2]);
+        let bv = Vector3::new(b_vec[0], b_vec[1], b_vec[2]);
+        let cv = av.cross(&bv);
+
+        let as_row = a.rows == 1;
+        let data = vec![
+            Self::from_complex64(cv[0]),
+            Self::from_complex64(cv[1]),
+            Self::from_complex64(cv[2]),
+        ];
+        if as_row {
+            Matrix::new(1, 3, data)
+        } else {
+            Matrix::new(3, 1, data)
+        }
+    }
+
+    fn matrix_trace(matrix: &Matrix) -> Result<Complex, CalcError> {
+        Self::require_square(matrix, "trace")?;
+        Ok(Self::from_complex64(
+            Self::matrix_to_dmatrix(matrix).trace(),
+        ))
+    }
+
+    fn matrix_p_norm(matrix: &Matrix, p: f64) -> Result<f64, CalcError> {
+        if !p.is_finite() || p <= 0.0 {
+            return Err(CalcError::DomainError(
+                "norm_p requires finite p > 0".to_string(),
+            ));
+        }
+
+        let sum = matrix
+            .data
+            .iter()
+            .map(|value| Self::to_complex64(*value).norm().powf(p))
+            .sum::<f64>();
+        Ok(sum.powf(1.0 / p))
+    }
+
     fn matrix_transpose(matrix: &Matrix) -> Matrix {
         let mut out = vec![Complex { re: 0.0, im: 0.0 }; matrix.data.len()];
         for row in 0..matrix.rows {
@@ -1407,11 +1694,7 @@ impl Calculator {
                 }
             }
         }
-        Matrix::new(
-            n,
-            n,
-            inv.into_iter().map(Self::from_complex64).collect(),
-        )
+        Matrix::new(n, n, inv.into_iter().map(Self::from_complex64).collect())
     }
 
     fn matrix_solve(a: &Matrix, b: &Matrix) -> Result<Matrix, CalcError> {
@@ -1775,7 +2058,11 @@ mod tests {
     fn mul_two_matrices() {
         let mut calc = Calculator::new();
         calc.push_value(Value::Matrix(matrix(2, 3, &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0])));
-        calc.push_value(Value::Matrix(matrix(3, 2, &[7.0, 8.0, 9.0, 10.0, 11.0, 12.0])));
+        calc.push_value(Value::Matrix(matrix(
+            3,
+            2,
+            &[7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
+        )));
 
         let result = calc.mul();
 
@@ -1843,13 +2130,118 @@ mod tests {
         assert_eq!(result, Ok(()));
         assert_eq!(
             calc.state().stack,
-            vec![Value::Matrix(Matrix::new(
-                1,
-                1,
-                vec![Complex { re: 6.0, im: 3.0 }]
-            )
-            .expect("valid matrix"))]
+            vec![Value::Matrix(
+                Matrix::new(1, 1, vec![Complex { re: 6.0, im: 3.0 }]).expect("valid matrix")
+            )]
         );
+    }
+
+    #[test]
+    fn matrix_scalar_add_sub_div_and_pow() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[2.0, 4.0])));
+        calc.push_value(Value::Real(3.0));
+        assert_eq!(calc.add(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Matrix(matrix(1, 2, &[5.0, 7.0]))]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Real(10.0));
+        calc.push_value(Value::Matrix(matrix(1, 2, &[2.0, 3.0])));
+        assert_eq!(calc.sub(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Matrix(matrix(1, 2, &[8.0, 7.0]))]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[6.0, 8.0])));
+        calc.push_value(Value::Real(2.0));
+        assert_eq!(calc.div(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Matrix(matrix(1, 2, &[3.0, 4.0]))]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[2.0, 3.0])));
+        calc.push_value(Value::Real(2.0));
+        assert_eq!(calc.pow(), Ok(()));
+        let expected = matrix(1, 2, &[4.0, 9.0]);
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => assert_matrix_close(actual, &expected, 1e-12),
+            other => panic!("expected matrix on stack, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn conjugate_supports_matrix_values() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(
+            Matrix::new(
+                1,
+                2,
+                vec![Complex { re: 1.0, im: 2.0 }, Complex { re: -3.0, im: -4.5 }],
+            )
+            .expect("valid matrix"),
+        ));
+
+        assert_eq!(calc.conjugate(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Matrix(
+                Matrix::new(
+                    1,
+                    2,
+                    vec![Complex { re: 1.0, im: -2.0 }, Complex { re: -3.0, im: 4.5 },],
+                )
+                .expect("valid matrix")
+            )]
+        );
+    }
+
+    #[test]
+    fn dot_cross_trace_and_norm_p() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(3, 1, &[1.0, 2.0, 3.0])));
+        calc.push_value(Value::Matrix(matrix(1, 3, &[4.0, 5.0, 6.0])));
+
+        assert_eq!(calc.dot(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Complex(Complex { re: 32.0, im: 0.0 })]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 3, &[1.0, 0.0, 0.0])));
+        calc.push_value(Value::Matrix(matrix(1, 3, &[0.0, 1.0, 0.0])));
+
+        assert_eq!(calc.cross(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Matrix(matrix(1, 3, &[0.0, 0.0, 1.0]))]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[1.0, 2.0, 3.0, 4.0])));
+
+        assert_eq!(calc.trace(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Complex(Complex { re: 5.0, im: 0.0 })]
+        );
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[3.0, 4.0])));
+        calc.push_value(Value::Real(2.0));
+
+        assert_eq!(calc.norm_p(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 5.0, 1e-12),
+            other => panic!("expected real norm value, got {other:?}"),
+        }
     }
 
     #[test]

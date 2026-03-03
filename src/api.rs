@@ -5,8 +5,13 @@ use crate::{AngleMode, CalcError, Calculator, Complex, DisplayMode, Matrix, Valu
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApiValue {
-    Real { value: f64 },
-    Complex { re: f64, im: f64 },
+    Real {
+        value: f64,
+    },
+    Complex {
+        re: f64,
+        im: f64,
+    },
     Matrix {
         rows: usize,
         cols: usize,
@@ -456,6 +461,26 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn dot(&mut self) -> ApiResponse {
+        let result = self.calculator.dot();
+        self.wrap(result)
+    }
+
+    pub fn cross(&mut self) -> ApiResponse {
+        let result = self.calculator.cross();
+        self.wrap(result)
+    }
+
+    pub fn trace(&mut self) -> ApiResponse {
+        let result = self.calculator.trace();
+        self.wrap(result)
+    }
+
+    pub fn norm_p(&mut self) -> ApiResponse {
+        let result = self.calculator.norm_p();
+        self.wrap(result)
+    }
+
     pub fn push_identity(&mut self, size: usize) -> ApiResponse {
         let result = self.calculator.push_identity(size);
         self.wrap(result)
@@ -602,7 +627,8 @@ mod wasm {
         }
 
         pub fn snapshot_json(&self) -> String {
-            serde_json::to_string(&self.inner.snapshot()).expect("state serialization should succeed")
+            serde_json::to_string(&self.inner.snapshot())
+                .expect("state serialization should succeed")
         }
 
         pub fn entry_set(&mut self, value: &str) -> String {
@@ -611,7 +637,8 @@ mod wasm {
         }
 
         pub fn enter(&mut self) -> String {
-            serde_json::to_string(&self.inner.enter()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.enter())
+                .expect("response serialization should succeed")
         }
 
         pub fn add(&mut self) -> String {
@@ -623,7 +650,8 @@ mod wasm {
         }
 
         pub fn percent(&mut self) -> String {
-            serde_json::to_string(&self.inner.percent()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.percent())
+                .expect("response serialization should succeed")
         }
 
         pub fn inv(&mut self) -> String {
@@ -631,15 +659,18 @@ mod wasm {
         }
 
         pub fn square(&mut self) -> String {
-            serde_json::to_string(&self.inner.square()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.square())
+                .expect("response serialization should succeed")
         }
 
         pub fn root(&mut self) -> String {
-            serde_json::to_string(&self.inner.root()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.root())
+                .expect("response serialization should succeed")
         }
 
         pub fn drop(&mut self) -> String {
-            serde_json::to_string(&self.inner.drop()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.drop())
+                .expect("response serialization should succeed")
         }
 
         pub fn dup(&mut self) -> String {
@@ -647,7 +678,8 @@ mod wasm {
         }
 
         pub fn swap(&mut self) -> String {
-            serde_json::to_string(&self.inner.swap()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.swap())
+                .expect("response serialization should succeed")
         }
 
         pub fn rot(&mut self) -> String {
@@ -677,7 +709,8 @@ mod wasm {
         }
 
         pub fn sqrt(&mut self) -> String {
-            serde_json::to_string(&self.inner.sqrt()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.sqrt())
+                .expect("response serialization should succeed")
         }
 
         pub fn ln(&mut self) -> String {
@@ -697,39 +730,48 @@ mod wasm {
         }
 
         pub fn asin(&mut self) -> String {
-            serde_json::to_string(&self.inner.asin()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.asin())
+                .expect("response serialization should succeed")
         }
 
         pub fn acos(&mut self) -> String {
-            serde_json::to_string(&self.inner.acos()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.acos())
+                .expect("response serialization should succeed")
         }
 
         pub fn atan(&mut self) -> String {
-            serde_json::to_string(&self.inner.atan()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.atan())
+                .expect("response serialization should succeed")
         }
 
         pub fn sinh(&mut self) -> String {
-            serde_json::to_string(&self.inner.sinh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.sinh())
+                .expect("response serialization should succeed")
         }
 
         pub fn cosh(&mut self) -> String {
-            serde_json::to_string(&self.inner.cosh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.cosh())
+                .expect("response serialization should succeed")
         }
 
         pub fn tanh(&mut self) -> String {
-            serde_json::to_string(&self.inner.tanh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.tanh())
+                .expect("response serialization should succeed")
         }
 
         pub fn asinh(&mut self) -> String {
-            serde_json::to_string(&self.inner.asinh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.asinh())
+                .expect("response serialization should succeed")
         }
 
         pub fn acosh(&mut self) -> String {
-            serde_json::to_string(&self.inner.acosh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.acosh())
+                .expect("response serialization should succeed")
         }
 
         pub fn atanh(&mut self) -> String {
-            serde_json::to_string(&self.inner.atanh()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.atanh())
+                .expect("response serialization should succeed")
         }
 
         pub fn exp(&mut self) -> String {
@@ -737,23 +779,28 @@ mod wasm {
         }
 
         pub fn exp10(&mut self) -> String {
-            serde_json::to_string(&self.inner.exp10()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.exp10())
+                .expect("response serialization should succeed")
         }
 
         pub fn exp2(&mut self) -> String {
-            serde_json::to_string(&self.inner.exp2()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.exp2())
+                .expect("response serialization should succeed")
         }
 
         pub fn log10(&mut self) -> String {
-            serde_json::to_string(&self.inner.log10()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.log10())
+                .expect("response serialization should succeed")
         }
 
         pub fn log2(&mut self) -> String {
-            serde_json::to_string(&self.inner.log2()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.log2())
+                .expect("response serialization should succeed")
         }
 
         pub fn gamma(&mut self) -> String {
-            serde_json::to_string(&self.inner.gamma()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.gamma())
+                .expect("response serialization should succeed")
         }
 
         pub fn erf(&mut self) -> String {
@@ -761,7 +808,8 @@ mod wasm {
         }
 
         pub fn signum(&mut self) -> String {
-            serde_json::to_string(&self.inner.signum()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.signum())
+                .expect("response serialization should succeed")
         }
 
         pub fn abs(&mut self) -> String {
@@ -769,7 +817,8 @@ mod wasm {
         }
 
         pub fn abs_sq(&mut self) -> String {
-            serde_json::to_string(&self.inner.abs_sq()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.abs_sq())
+                .expect("response serialization should succeed")
         }
 
         pub fn arg(&mut self) -> String {
@@ -777,23 +826,28 @@ mod wasm {
         }
 
         pub fn conjugate(&mut self) -> String {
-            serde_json::to_string(&self.inner.conjugate()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.conjugate())
+                .expect("response serialization should succeed")
         }
 
         pub fn atan2(&mut self) -> String {
-            serde_json::to_string(&self.inner.atan2()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.atan2())
+                .expect("response serialization should succeed")
         }
 
         pub fn to_rad(&mut self) -> String {
-            serde_json::to_string(&self.inner.to_rad()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.to_rad())
+                .expect("response serialization should succeed")
         }
 
         pub fn to_deg(&mut self) -> String {
-            serde_json::to_string(&self.inner.to_deg()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.to_deg())
+                .expect("response serialization should succeed")
         }
 
         pub fn factorial(&mut self) -> String {
-            serde_json::to_string(&self.inner.factorial()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.factorial())
+                .expect("response serialization should succeed")
         }
 
         pub fn ncr(&mut self) -> String {
@@ -805,11 +859,13 @@ mod wasm {
         }
 
         pub fn modulo(&mut self) -> String {
-            serde_json::to_string(&self.inner.modulo()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.modulo())
+                .expect("response serialization should succeed")
         }
 
         pub fn rand_num(&mut self) -> String {
-            serde_json::to_string(&self.inner.rand_num()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.rand_num())
+                .expect("response serialization should succeed")
         }
 
         pub fn gcd(&mut self) -> String {
@@ -821,27 +877,33 @@ mod wasm {
         }
 
         pub fn round_value(&mut self) -> String {
-            serde_json::to_string(&self.inner.round_value()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.round_value())
+                .expect("response serialization should succeed")
         }
 
         pub fn floor_value(&mut self) -> String {
-            serde_json::to_string(&self.inner.floor_value()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.floor_value())
+                .expect("response serialization should succeed")
         }
 
         pub fn ceil_value(&mut self) -> String {
-            serde_json::to_string(&self.inner.ceil_value()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.ceil_value())
+                .expect("response serialization should succeed")
         }
 
         pub fn dec_part(&mut self) -> String {
-            serde_json::to_string(&self.inner.dec_part()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.dec_part())
+                .expect("response serialization should succeed")
         }
 
         pub fn push_pi(&mut self) -> String {
-            serde_json::to_string(&self.inner.push_pi()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.push_pi())
+                .expect("response serialization should succeed")
         }
 
         pub fn push_e(&mut self) -> String {
-            serde_json::to_string(&self.inner.push_e()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.push_e())
+                .expect("response serialization should succeed")
         }
 
         pub fn set_angle_mode_deg(&mut self) -> String {
@@ -860,7 +922,8 @@ mod wasm {
         }
 
         pub fn clear_all(&mut self) -> String {
-            serde_json::to_string(&self.inner.clear_all()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.clear_all())
+                .expect("response serialization should succeed")
         }
 
         pub fn push_real(&mut self, value: f64) -> String {
@@ -896,7 +959,8 @@ mod wasm {
         }
 
         pub fn inverse(&mut self) -> String {
-            serde_json::to_string(&self.inner.inverse()).expect("response serialization should succeed")
+            serde_json::to_string(&self.inner.inverse())
+                .expect("response serialization should succeed")
         }
 
         pub fn transpose(&mut self) -> String {
@@ -906,6 +970,25 @@ mod wasm {
 
         pub fn solve_ax_b(&mut self) -> String {
             serde_json::to_string(&self.inner.solve_ax_b())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn dot(&mut self) -> String {
+            serde_json::to_string(&self.inner.dot()).expect("response serialization should succeed")
+        }
+
+        pub fn cross(&mut self) -> String {
+            serde_json::to_string(&self.inner.cross())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn trace(&mut self) -> String {
+            serde_json::to_string(&self.inner.trace())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn norm_p(&mut self) -> String {
+            serde_json::to_string(&self.inner.norm_p())
                 .expect("response serialization should succeed")
         }
 
@@ -1030,6 +1113,57 @@ mod tests {
                 cols: 2,
                 data: vec![c(1.0, 0.0), c(0.0, 0.0), c(0.0, 0.0), c(1.0, 0.0)]
             }]
+        );
+    }
+
+    #[test]
+    fn dot_trace_and_norm_p_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 3,
+            data: vec![c(1.0, 0.0), c(2.0, 0.0), c(3.0, 0.0)],
+        });
+        api.push_matrix(MatrixInput {
+            rows: 3,
+            cols: 1,
+            data: vec![c(4.0, 0.0), c(5.0, 0.0), c(6.0, 0.0)],
+        });
+
+        let dot_response = api.dot();
+        assert!(dot_response.ok);
+        assert_eq!(
+            dot_response.state.stack,
+            vec![ApiValue::Complex { re: 32.0, im: 0.0 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(1.0, 0.0), c(2.0, 0.0), c(3.0, 0.0), c(4.0, 0.0)],
+        });
+
+        let trace_response = api.trace();
+        assert!(trace_response.ok);
+        assert_eq!(
+            trace_response.state.stack,
+            vec![ApiValue::Complex { re: 5.0, im: 0.0 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 2,
+            data: vec![c(3.0, 0.0), c(4.0, 0.0)],
+        });
+        api.push_real(2.0);
+
+        let norm_response = api.norm_p();
+        assert!(norm_response.ok);
+        assert_eq!(
+            norm_response.state.stack,
+            vec![ApiValue::Real { value: 5.0 }]
         );
     }
 

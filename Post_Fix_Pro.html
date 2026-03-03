@@ -660,8 +660,12 @@
           <button class="fn" id="push-b-btn">Push B</button>
           <button class="op" id="solve-btn">Solve A*x=B</button>
           <button class="fn" data-action="det">det</button>
+          <button class="fn" data-action="trace">trace</button>
           <button class="fn" data-action="transpose">transpose</button>
           <button class="fn" data-action="inverse">inverse</button>
+          <button class="fn" data-action="dot">dot</button>
+          <button class="fn" data-action="cross">cross</button>
+          <button class="fn" data-action="norm-p">norm_p</button>
         </div>
         <div class="matrix-presets">
           <button class="fn" id="preset-a-btn">Preset A 2x2</button>
@@ -1445,7 +1449,11 @@
         "dec-part": "dec_part",
         inverse: "inverse",
         transpose: "transpose",
-        det: "determinant"
+        det: "determinant",
+        trace: "trace",
+        dot: "dot",
+        cross: "cross",
+        "norm-p": "norm_p"
       };
       const method = opMap[action];
       if (!method) return;
