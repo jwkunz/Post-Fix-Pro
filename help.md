@@ -61,6 +61,7 @@ Stack labels:
 - `LU`: LU decomposition with partial pivoting; replaces top matrix with `P` and pushes `L`, then `U` (so `P*A = L*U`)
 - `SVD`: singular value decomposition (supports complex matrices); replaces top matrix with `U` and pushes `S`, then `Vt`
 - `EVD`: eigendecomposition; replaces top matrix with `V` and pushes `D`. If exact diagonalization is unavailable, returns Schur form (`Q`, `T`) with a warning.
+- Decomposition outputs are tagged in the stack view as `Q/R`, `P/L/U`, `U/S/Vt`, and `V/D` for quick identification.
 - `Preset`: convenience template
 - `Preset I(n)`: fill Matrix Entry with an identity matrix template of size `n`
 

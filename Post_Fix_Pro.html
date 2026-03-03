@@ -238,6 +238,20 @@
       font-weight: 700;
     }
 
+    .stack-role {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(99, 182, 255, 0.18);
+      color: #cff2ff;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
     .hint {
       margin-top: 10px;
       color: var(--muted);
@@ -887,6 +901,7 @@
     let lastState = null;
     let pendingCommand = null;
     let hypMode = false;
+    const stackRoleLabels = new Map();
     let helpLoaded = false;
     let isEntryEditing = false;
 
@@ -976,10 +991,17 @@
 
     function call(methodName, ...args) {
       if (!wasmCalc || typeof wasmCalc[methodName] !== "function") {
-        setError(`runtime method missing: ${methodName}`);
+        setError(`runtime method missing: `);
         return null;
       }
       const response = parseResponse(wasmCalc[methodName](...args));
+      if (response.ok) {
+        if (["qr", "lu", "svd", "evd"].includes(methodName)) {
+          applyDecompositionLabels(methodName, response.state);
+        } else {
+          clearStackRoleLabels();
+        }
+      }
       renderState(response.state);
       if (response.ok) {
         setError(response.warning || "");
