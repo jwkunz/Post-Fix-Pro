@@ -40,6 +40,8 @@ Stack labels:
 - `dot`: vector dot product (supports `Nx1` and `1xN`)
 - `cross`: vector cross product (3-element vectors)
 - `norm_p`: p-norm (push matrix/vector, then push `p`, then press `norm_p`)
+- `diag`: convert vector matrix (`Nx1` or `1xN`) into a diagonal matrix
+- `MatExp`: matrix exponential of top square matrix (`e^A`)
 - `Preset A 2x2`, `Preset B vec`: convenience templates
 - `Push I(n)`: push identity matrix of size `n`
 

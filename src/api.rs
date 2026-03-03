@@ -481,6 +481,16 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn diag(&mut self) -> ApiResponse {
+        let result = self.calculator.diag();
+        self.wrap(result)
+    }
+
+    pub fn mat_exp(&mut self) -> ApiResponse {
+        let result = self.calculator.mat_exp();
+        self.wrap(result)
+    }
+
     pub fn mean(&mut self) -> ApiResponse {
         let result = self.calculator.mean();
         self.wrap(result)
@@ -1022,6 +1032,16 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn diag(&mut self) -> String {
+            serde_json::to_string(&self.inner.diag())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn mat_exp(&mut self) -> String {
+            serde_json::to_string(&self.inner.mat_exp())
+                .expect("response serialization should succeed")
+        }
+
         pub fn mean(&mut self) -> String {
             serde_json::to_string(&self.inner.mean())
                 .expect("response serialization should succeed")
@@ -1225,6 +1245,57 @@ mod tests {
             norm_response.state.stack,
             vec![ApiValue::Real { value: 5.0 }]
         );
+    }
+
+    #[test]
+    fn diag_and_mat_exp_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 3,
+            data: vec![c(1.0, 0.0), c(2.0, 0.0), c(3.0, 0.0)],
+        });
+
+        let diag_response = api.diag();
+        assert!(diag_response.ok);
+        assert_eq!(
+            diag_response.state.stack,
+            vec![ApiValue::Matrix {
+                rows: 3,
+                cols: 3,
+                data: vec![
+                    c(1.0, 0.0),
+                    c(0.0, 0.0),
+                    c(0.0, 0.0),
+                    c(0.0, 0.0),
+                    c(2.0, 0.0),
+                    c(0.0, 0.0),
+                    c(0.0, 0.0),
+                    c(0.0, 0.0),
+                    c(3.0, 0.0),
+                ]
+            }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(1.0, 0.0), c(0.0, 0.0), c(0.0, 0.0), c(2.0, 0.0)],
+        });
+
+        let exp_response = api.mat_exp();
+        assert!(exp_response.ok);
+        match exp_response.state.stack.as_slice() {
+            [ApiValue::Matrix { rows, cols, data }] => {
+                assert_eq!((*rows, *cols), (2, 2));
+                assert!((data[0].re - std::f64::consts::E).abs() < 1e-10);
+                assert!(data[1].re.abs() < 1e-10);
+                assert!(data[2].re.abs() < 1e-10);
+                assert!((data[3].re - std::f64::consts::E.powi(2)).abs() < 1e-10);
+            }
+            other => panic!("expected matrix response, got {other:?}"),
+        }
     }
 
     #[test]

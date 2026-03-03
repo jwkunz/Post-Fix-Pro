@@ -666,6 +666,8 @@
           <button class="fn" data-action="dot">dot</button>
           <button class="fn" data-action="cross">cross</button>
           <button class="fn" data-action="norm-p">norm_p</button>
+          <button class="fn" data-action="diag">diag</button>
+          <button class="fn" data-action="mat-exp">MatExp</button>
         </div>
         <div class="matrix-presets">
           <button class="fn" id="preset-a-btn">Preset A 2x2</button>
@@ -1465,7 +1467,9 @@
         trace: "trace",
         dot: "dot",
         cross: "cross",
-        "norm-p": "norm_p"
+        "norm-p": "norm_p",
+        diag: "diag",
+        "mat-exp": "mat_exp"
       };
       const method = opMap[action];
       if (!method) return;

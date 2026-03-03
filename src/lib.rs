@@ -1076,6 +1076,24 @@ impl Calculator {
         })
     }
 
+    pub fn diag(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Matrix(Self::matrix_diag(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "diag requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn mat_exp(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Matrix(Self::matrix_exp(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "MatExp requires a matrix value".to_string(),
+            )),
+        })
+    }
+
     pub fn mean(&mut self) -> Result<(), CalcError> {
         self.apply_unary_op(|value| match value {
             Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mean(matrix)?)),
@@ -1609,6 +1627,49 @@ impl Calculator {
             .map(|value| Self::to_complex64(*value).norm().powf(p))
             .sum::<f64>();
         Ok(sum.powf(1.0 / p))
+    }
+
+    fn matrix_diag(matrix: &Matrix) -> Result<Matrix, CalcError> {
+        let vector = Self::matrix_vector(matrix)?;
+        let n = vector.len();
+        let mut data = vec![Complex { re: 0.0, im: 0.0 }; n * n];
+        for i in 0..n {
+            data[i * n + i] = Self::from_complex64(vector[i]);
+        }
+        Matrix::new(n, n, data)
+    }
+
+    fn matrix_max_abs_entry(matrix: &DMatrix<Complex64>) -> f64 {
+        matrix
+            .iter()
+            .map(|value| value.norm())
+            .fold(0.0_f64, f64::max)
+    }
+
+    fn matrix_exp(matrix: &Matrix) -> Result<Matrix, CalcError> {
+        Self::require_square(matrix, "MatExp")?;
+
+        let a = Self::matrix_to_dmatrix(matrix);
+        let n = a.nrows();
+        let mut result = DMatrix::<Complex64>::identity(n, n);
+        let mut term = DMatrix::<Complex64>::identity(n, n);
+
+        for k in 1..=64 {
+            term = (&term * &a).map(|value| value / k as f64);
+            result += &term;
+            if Self::matrix_max_abs_entry(&term) < 1e-14 {
+                break;
+            }
+        }
+
+        let mut out = Vec::with_capacity(n * n);
+        for row in 0..n {
+            for col in 0..n {
+                out.push(Self::from_complex64(result[(row, col)]));
+            }
+        }
+
+        Matrix::new(n, n, out)
     }
 
     fn matrix_real_vector(matrix: &Matrix) -> Result<Vec<f64>, CalcError> {
@@ -2433,6 +2494,37 @@ mod tests {
         match calc.state().stack.as_slice() {
             [Value::Real(v)] => assert_real_close(*v, 1.0, 1e-12),
             other => panic!("expected real min value, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn diag_and_mat_exp() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(1, 3, &[1.0, 2.0, 3.0])));
+
+        assert_eq!(calc.diag(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => {
+                let expected = matrix(3, 3, &[1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0]);
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("expected matrix diag value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(2, 2, &[1.0, 0.0, 0.0, 2.0])));
+
+        assert_eq!(calc.mat_exp(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => {
+                let expected = matrix(
+                    2,
+                    2,
+                    &[std::f64::consts::E, 0.0, 0.0, std::f64::consts::E.powi(2)],
+                );
+                assert_matrix_close(actual, &expected, 1e-10);
+            }
+            other => panic!("expected matrix MatExp value, got {other:?}"),
         }
     }
 
