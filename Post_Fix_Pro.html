@@ -619,7 +619,7 @@
       <div class="status-row">
         <strong>Post Fix Pro</strong>
         <div class="status-actions">
-          <button class="fn help-btn" id="help-open-btn" type="button">Help</button>
+          <button class="fn help-btn" id="help-open-btn" type="button">help</button>
           <span id="angle-indicator" class="status-chip">RAD</span>
         </div>
       </div>
@@ -632,37 +632,37 @@
       <p class="keypad-guide">RPN flow: build number -> <code>Enter</code> -> apply operation.</p>
 
       <div class="keys" id="keypad">
-        <button class="fn" data-action="toggle-angle">RAD/DEG</button>
-        <button class="fn" data-action="pick-top-index">Pick</button>
-        <button class="danger" data-action="clear-entry">CE</button>
-        <button class="danger" data-action="clear-all">C</button>
+        <button class="fn" data-action="toggle-angle">set_angle_mode</button>
+        <button class="fn" data-action="pick-top-index">pick_from_stack_index</button>
+        <button class="danger" data-action="clear-entry">clear_entry</button>
+        <button class="danger" data-action="clear-all">clear_all</button>
 
-        <button class="fn" data-action="drop">Drop</button>
-        <button class="fn" data-action="dup">Dup</button>
-        <button class="fn" data-action="swap">Swap</button>
-        <button class="fn" data-action="rot">Rot</button>
+        <button class="fn" data-action="drop">drop</button>
+        <button class="fn" data-action="dup">dup</button>
+        <button class="fn" data-action="swap">swap</button>
+        <button class="fn" data-action="rot">rot</button>
 
-        <button class="fn" data-action="toggle-sign">+/-</button>
-        <button class="op" data-action="div">/</button>
-        <button class="op" data-action="mul">*</button>
-        <button class="op" data-action="sub">-</button>
+        <button class="fn" data-action="toggle-sign">toggle_sign</button>
+        <button class="op" data-action="div">div</button>
+        <button class="op" data-action="mul">mul</button>
+        <button class="op" data-action="sub">sub</button>
 
         <button data-digit="7">7</button>
         <button data-digit="8">8</button>
         <button data-digit="9">9</button>
-        <button class="op" data-action="add">+</button>
+        <button class="op" data-action="add">add</button>
 
         <button data-digit="4">4</button>
         <button data-digit="5">5</button>
         <button data-digit="6">6</button>
-        <button class="op tall-2" data-action="enter">Enter</button>
+        <button class="op tall-2" data-action="enter">enter</button>
 
         <button data-digit="1">1</button>
         <button data-digit="2">2</button>
         <button data-digit="3">3</button>
         <button class="wide" data-digit="0">0</button>
         <button data-action="decimal">.</button>
-        <button class="fn" data-action="insert-exp">EXP</button>
+        <button class="fn" data-action="insert-exp">insert_exp</button>
       </div>
     </section>
 
@@ -680,19 +680,19 @@
           <div class="matrix-size-row">
             <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix Entry rows">
             <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix Entry columns">
-            <button class="fn" id="apply-a-size-btn" type="button">Apply</button>
+            <button class="fn" id="apply-a-size-btn" type="button">apply_size</button>
           </div>
         </div>
       </div>
       <div class="matrix-actions">
-        <button class="fn" id="push-a-btn">Push</button>
-        <button class="fn" id="preset-a-btn">Preset</button>
+        <button class="fn" id="push-a-btn">push_matrix</button>
+        <button class="fn" id="preset-a-btn">preset_matrix</button>
         <div class="identity">
           <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
-          <button class="fn" id="push-identity-btn">Preset I(n)</button>
+          <button class="fn" id="push-identity-btn">push_identity</button>
         </div>
-        <button class="fn" id="import-csv-btn">Import CSV</button>
-        <button class="fn" id="export-csv-btn">Export CSV</button>
+        <button class="fn" id="import-csv-btn">import_csv</button>
+        <button class="fn" id="export-csv-btn">export_csv</button>
         <button class="fn" id="hstack-btn">hstack</button>
         <button class="fn" id="vstack-btn">vstack</button>
         <button class="fn" id="hravel-btn">hravel</button>
@@ -708,63 +708,63 @@
         <button class="fn" data-action="dot">dot</button>
         <button class="fn" data-action="cross">cross</button>
         <button class="fn" data-action="diag">diag</button>
-        <button class="fn" data-action="tpltz">tpltz</button>
+        <button class="fn" data-action="tpltz">toep</button>
       </div>
     </section>
 
     <section class="panel">
       <h3 class="panel-title">Matrix Operators</h3>
       <div class="matrix-actions" data-advanced-actions>
-        <button class="op" id="solve-btn">Solve A*x=B</button>
-        <button class="op" id="solve-lstsq-btn">LSTSQ Solve</button>
-        <button class="fn" data-action="det">det</button>
+        <button class="op" id="solve-btn">solve_ax_b</button>
+        <button class="op" id="solve-lstsq-btn">solve_lstsq</button>
+        <button class="fn" data-action="det">determinant</button>
         <button class="fn" data-action="trace">trace</button>
         <button class="fn" data-action="transpose">transpose</button>
         <button class="fn" data-action="inverse">inverse</button>
-        <button class="fn" data-action="hadamard-mul">H mul</button>
-        <button class="fn" data-action="hadamard-div">H div</button>
+        <button class="fn" data-action="hadamard-mul">hadamard_mul</button>
+        <button class="fn" data-action="hadamard-div">hadamard_div</button>
         <button class="fn" data-action="norm-p">norm_p</button>
-        <button class="fn" data-action="mat-exp">exp(mat)</button>
-        <button class="fn" data-action="hermitian">herm</button>
-        <button class="fn" data-action="mat-pow">mat x^y</button>
+        <button class="fn" data-action="mat-exp">mat_exp</button>
+        <button class="fn" data-action="hermitian">hermitian</button>
+        <button class="fn" data-action="mat-pow">mat_pow</button>
       </div>
     </section>
 
     <section class="panel">
       <h3 class="panel-title">Matrix Decompositions</h3>
       <div class="matrix-actions" data-advanced-actions>
-        <button class="fn" data-action="qr">QR</button>
-        <button class="fn" data-action="lu">LU</button>
-        <button class="fn" data-action="svd">SVD</button>
-        <button class="fn" data-action="evd">EVD</button>
+        <button class="fn" data-action="qr">qr</button>
+        <button class="fn" data-action="lu">lu</button>
+        <button class="fn" data-action="svd">svd</button>
+        <button class="fn" data-action="evd">evd</button>
       </div>
     </section>
 
     <section class="panel">
       <h3 class="panel-title">Scalar</h3>
       <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="inv">inv x</button>
-        <button class="fn" data-action="square">x^2</button>
+        <button class="fn" data-action="inv">inv</button>
+        <button class="fn" data-action="square">square</button>
         <button class="fn" data-action="sqrt">sqrt</button>
-        <button class="fn" data-action="pow">x^y</button>
-        <button class="fn" data-action="root">x√y</button>
-        <button class="fn" data-action="exp10">10^x</button>
+        <button class="fn" data-action="pow">pow</button>
+        <button class="fn" data-action="root">root</button>
+        <button class="fn" data-action="exp10">exp10</button>
         <button class="fn" data-action="log10">log10</button>
-        <button class="fn" data-action="exp">e^x</button>
-        <button class="fn" data-action="ln">ln x</button>
-        <button class="fn" data-action="exp2">2^x</button>
-        <button class="fn" data-action="log2">log2 x</button>
+        <button class="fn" data-action="exp">exp</button>
+        <button class="fn" data-action="ln">ln</button>
+        <button class="fn" data-action="exp2">exp2</button>
+        <button class="fn" data-action="log2">log2</button>
         <button class="fn" data-action="signum">signum</button>
-        <button class="fn" data-action="percent">%</button>
+        <button class="fn" data-action="percent">percent</button>
       </div>
     </section>
 
     <section class="panel">
       <h3 class="panel-title">Trigonometry</h3>
       <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp</button>
-        <button class="fn" data-action="to-rad">to rad</button>
-        <button class="fn" data-action="to-deg">to deg</button>
+        <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp_toggle</button>
+        <button class="fn" data-action="to-rad">to_rad</button>
+        <button class="fn" data-action="to-deg">to_deg</button>
         <button class="fn" data-action="atan2">atan2</button>
         <button class="fn" data-action="sin" data-hyp="sinh">sin</button>
         <button class="fn" data-action="asin" data-hyp="asinh">asin</button>
@@ -779,11 +779,11 @@
       <h3 class="panel-title">Complex</h3>
       <div class="science-actions" data-advanced-actions>
         <button class="fn" data-action="abs">abs</button>
-        <button class="fn" data-action="abs-sq">abs^2</button>
+        <button class="fn" data-action="abs-sq">abs_sq</button>
         <button class="fn" data-action="arg">arg</button>
-        <button class="fn" data-action="conjugate">conj</button>
-        <button class="fn" data-action="real-part">real()</button>
-        <button class="fn" data-action="imag-part">imag()</button>
+        <button class="fn" data-action="conjugate">conjugate</button>
+        <button class="fn" data-action="real-part">real_part</button>
+        <button class="fn" data-action="imag-part">imag_part</button>
         <button class="fn" data-action="cart">cart</button>
         <button class="fn" data-action="pol">pol</button>
         <button class="fn" data-action="npol">npol</button>
@@ -793,12 +793,12 @@
     <section class="panel">
       <h3 class="panel-title">Number Theory</h3>
       <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="factorial">n!</button>
-        <button class="fn" data-action="ncr">nCr</button>
-        <button class="fn" data-action="npr">nPr</button>
-        <button class="fn" data-action="modulo">x mod y</button>
-        <button class="fn" data-action="gcd">GCD</button>
-        <button class="fn" data-action="lcm">LCM</button>
+        <button class="fn" data-action="factorial">factorial</button>
+        <button class="fn" data-action="ncr">ncr</button>
+        <button class="fn" data-action="npr">npr</button>
+        <button class="fn" data-action="modulo">modulo</button>
+        <button class="fn" data-action="gcd">gcd</button>
+        <button class="fn" data-action="lcm">lcm</button>
         <button class="fn" data-action="gamma">gamma</button>
         <button class="fn" data-action="erf">erf</button>
       </div>
@@ -809,11 +809,11 @@
       <div class="science-actions" data-advanced-actions>
         <button class="fn" data-action="mean">mean</button>
         <button class="fn" data-action="mode">mode</button>
-        <button class="fn" data-action="std-dev">std dev</button>
+        <button class="fn" data-action="std-dev">std_dev</button>
         <button class="fn" data-action="variance">variance</button>
         <button class="fn" data-action="max">max</button>
         <button class="fn" data-action="min">min</button>
-        <button class="fn" data-action="rand">ran#</button>
+        <button class="fn" data-action="rand">rand_num</button>
       </div>
     </section>
 
@@ -823,24 +823,24 @@
         <button class="fn" data-action="round">round</button>
         <button class="fn" data-action="floor">floor</button>
         <button class="fn" data-action="ceil">ceil</button>
-        <button class="fn" data-action="dec-part">dec part</button>
+        <button class="fn" data-action="dec-part">dec_part</button>
       </div>
     </section>
 
     <section class="panel">
       <h3 class="panel-title">Constants</h3>
       <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="pi">π</button>
-        <button class="fn" data-action="e">e</button>
-        <button class="fn" data-action="const-euler-gamma">γ</button>
-        <button class="fn" data-action="const-psi">ψ</button>
-        <button class="fn" data-action="const-c">c</button>
-        <button class="fn" data-action="const-mol">mol</button>
-        <button class="fn" data-action="const-k">k</button>
-        <button class="fn" data-action="const-hbar">ħ</button>
-        <button class="fn" data-action="const-epsilon0">ε₀</button>
-        <button class="fn" data-action="const-mu0">μ₀</button>
-        <button class="fn" data-action="const-G">G</button>
+        <button class="fn" data-action="pi">push_pi</button>
+        <button class="fn" data-action="e">push_e</button>
+        <button class="fn" data-action="const-euler-gamma">const_euler_gamma</button>
+        <button class="fn" data-action="const-psi">const_psi</button>
+        <button class="fn" data-action="const-c">const_c</button>
+        <button class="fn" data-action="const-mol">const_mol</button>
+        <button class="fn" data-action="const-k">const_k</button>
+        <button class="fn" data-action="const-hbar">const_hbar</button>
+        <button class="fn" data-action="const-epsilon0">const_epsilon0</button>
+        <button class="fn" data-action="const-mu0">const_mu0</button>
+        <button class="fn" data-action="const-G">const_g</button>
       </div>
     </section>
 
@@ -850,9 +850,9 @@
         <h3>Memory A-Z</h3>
         <div class="memory-row">
           <input id="memory-register-input" type="text" maxlength="1" value="A" aria-label="Memory register">
-          <button class="fn" id="memory-store-btn">STO</button>
-          <button class="fn" id="memory-recall-btn">RCL</button>
-          <button class="danger" id="memory-clear-btn">CLR</button>
+          <button class="fn" id="memory-store-btn">memory_store</button>
+          <button class="fn" id="memory-recall-btn">memory_recall</button>
+          <button class="danger" id="memory-clear-btn">memory_clear</button>
         </div>
       </section>
     </section>
@@ -861,7 +861,7 @@
     <div class="help-dialog" role="dialog" aria-modal="true" aria-label="Calculator help">
       <div class="help-header">
         <span>Calculator Help</span>
-        <button class="danger help-btn" id="help-close-btn" type="button">Close</button>
+        <button class="danger help-btn" id="help-close-btn" type="button">close</button>
       </div>
       <iframe class="help-frame" id="help-frame" title="Calculator Help" loading="lazy"></iframe>
     </div>
