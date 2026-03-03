@@ -28,6 +28,11 @@ Stack labels:
 - `0..9`, `.`, `EXP`: number entry (`EXP` inserts `E` for scientific notation, e.g. `2.3E3`)
 - `Enter`: push entry buffer onto stack
 
+## UI Controls
+
+- `help`: open the in-app help dialog
+- `close`: close the in-app help dialog
+
 ## Matrix Panels
 
 - `Matrix Builder`: Matrix Entry box, sizing, Push, CSV import/export, and preset template

@@ -543,6 +543,29 @@
       background: #0b1020;
     }
 
+    .button-tooltip {
+      position: fixed;
+      z-index: 1200;
+      max-width: min(420px, 80vw);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(8, 12, 20, 0.95);
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .button-tooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 10px;
@@ -866,6 +889,7 @@
       <iframe class="help-frame" id="help-frame" title="Calculator Help" loading="lazy"></iframe>
     </div>
   </div>
+  <div id="button-tooltip" class="button-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script src="./pkg/webcalculator_backend.js"></script>
   <script src="./wasm_base64.js"></script>
@@ -906,6 +930,7 @@
     const helpCloseBtn = document.getElementById("help-close-btn");
     const helpModal = document.getElementById("help-modal");
     const helpFrame = document.getElementById("help-frame");
+    const buttonTooltip = document.getElementById("button-tooltip");
 
     let wasmCalc = null;
     let entryBuffer = "";
@@ -922,6 +947,173 @@
     };
     let helpLoaded = false;
     let isEntryEditing = false;
+    let tooltipMap = new Map();
+    let tooltipTimer = null;
+    let tooltipTarget = null;
+    const tooltipDelayMs = 2000;
+    const tooltipActionKeyMap = {
+      "toggle-angle": "rad/deg",
+      "pick-top-index": "pick",
+      "clear-entry": "ce",
+      "clear-all": "c",
+      "toggle-sign": "+/-",
+      "insert-exp": "exp",
+      "hyp-toggle": "hyp",
+      "to-rad": "to rad",
+      "to-deg": "to deg",
+      "abs-sq": "abs^2",
+      "real-part": "real()",
+      "imag-part": "imag()",
+      "modulo": "x mod y",
+      "rand": "ran#",
+      "std-dev": "std dev",
+      "dec-part": "dec part",
+      "det": "det",
+      "hadamard-mul": "h mul",
+      "hadamard-div": "h div",
+      "mat-exp": "exp(mat)",
+      "mat-pow": "mat x^y",
+      "const-euler-gamma": "gamma",
+      "const-psi": "ψ",
+      "const-c": "c",
+      "const-mol": "mol",
+      "const-k": "k",
+      "const-hbar": "hbar",
+      "const-epsilon0": "epsilon_0",
+      "const-mu0": "mu_0",
+      "const-G": "g",
+    };
+    const tooltipIdKeyMap = {
+      "help-open-btn": "help",
+      "help-close-btn": "close",
+      "apply-a-size-btn": "apply",
+      "push-a-btn": "push",
+      "preset-a-btn": "preset",
+      "push-identity-btn": "preset i(n)",
+      "import-csv-btn": "import csv -> a",
+      "export-csv-btn": "export top csv",
+      "hstack-btn": "hstack",
+      "vstack-btn": "vstack",
+      "hravel-btn": "hravel",
+      "vravel-btn": "vravel",
+      "solve-btn": "solve a*x=b",
+      "solve-lstsq-btn": "lstsq solve",
+      "memory-store-btn": "sto",
+      "memory-recall-btn": "rcl",
+      "memory-clear-btn": "clr",
+    };
+
+    function normalizeTooltipKey(key) {
+      return String(key || "").trim().toLowerCase();
+    }
+
+    function parseHelpTooltipMap(markdownText) {
+      const entries = new Map();
+      const lines = String(markdownText || "").split(/\r?\n/);
+      for (const line of lines) {
+        const match = line.match(/^\s*-\s*`([^`]+)`\s*:\s*(.+?)\s*$/);
+        if (!match) continue;
+        entries.set(normalizeTooltipKey(match[1]), match[2].trim());
+      }
+      return entries;
+    }
+
+    async function loadTooltipMap() {
+      try {
+        const response = await fetch("./help.md", { cache: "no-cache" });
+        if (!response.ok) return;
+        tooltipMap = parseHelpTooltipMap(await response.text());
+      } catch (_) {
+        tooltipMap = new Map();
+      }
+    }
+
+    function tooltipCandidatesForButton(button) {
+      const candidates = [];
+      if (button.dataset.digit !== undefined) {
+        candidates.push("0..9");
+      }
+      const action = button.dataset.action;
+      if (action) {
+        candidates.push(tooltipActionKeyMap[action] || action);
+      }
+      if (button.id && tooltipIdKeyMap[button.id]) {
+        candidates.push(tooltipIdKeyMap[button.id]);
+      }
+      const label = button.textContent ? button.textContent.trim() : "";
+      if (label) candidates.push(label);
+      return candidates.map(normalizeTooltipKey).filter(Boolean);
+    }
+
+    function tooltipTextForButton(button) {
+      if (!tooltipMap.size) return "";
+      const candidates = tooltipCandidatesForButton(button);
+      for (const key of candidates) {
+        const text = tooltipMap.get(key);
+        if (text) return text;
+      }
+      return "";
+    }
+
+    function positionTooltip(button) {
+      const rect = button.getBoundingClientRect();
+      const gap = 10;
+      const tooltipRect = buttonTooltip.getBoundingClientRect();
+      let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8));
+      let top = rect.bottom + gap;
+      if (top + tooltipRect.height > window.innerHeight - 8) {
+        top = rect.top - tooltipRect.height - gap;
+      }
+      top = Math.max(8, top);
+      buttonTooltip.style.left = `${left}px`;
+      buttonTooltip.style.top = `${top}px`;
+    }
+
+    function hideButtonTooltip() {
+      if (tooltipTimer) {
+        clearTimeout(tooltipTimer);
+        tooltipTimer = null;
+      }
+      tooltipTarget = null;
+      buttonTooltip.classList.remove("show");
+      buttonTooltip.setAttribute("aria-hidden", "true");
+    }
+
+    function scheduleButtonTooltip(button) {
+      if (tooltipTimer) clearTimeout(tooltipTimer);
+      tooltipTarget = button;
+      tooltipTimer = setTimeout(() => {
+        if (tooltipTarget !== button) return;
+        const text = tooltipTextForButton(button);
+        if (!text) return;
+        buttonTooltip.textContent = text;
+        buttonTooltip.classList.add("show");
+        buttonTooltip.setAttribute("aria-hidden", "false");
+        positionTooltip(button);
+      }, tooltipDelayMs);
+    }
+
+    function installButtonTooltips() {
+      document.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("mouseenter", () => {
+          scheduleButtonTooltip(button);
+        });
+        button.addEventListener("mouseleave", () => {
+          hideButtonTooltip();
+        });
+      });
+      window.addEventListener("scroll", () => {
+        if (tooltipTarget && buttonTooltip.classList.contains("show")) {
+          positionTooltip(tooltipTarget);
+        }
+      }, true);
+      window.addEventListener("resize", () => {
+        if (tooltipTarget && buttonTooltip.classList.contains("show")) {
+          positionTooltip(tooltipTarget);
+        }
+      });
+    }
 
     function setError(message) {
       if (!message) {
@@ -1925,6 +2117,7 @@
 
     async function boot() {
       try {
+        await loadTooltipMap();
         if (typeof wasm_bindgen !== "function") {
           throw new Error("wasm_bindgen runtime is unavailable");
         }
@@ -1952,6 +2145,7 @@
       }
     }
 
+    installButtonTooltips();
     boot();
   </script>
 </body>
