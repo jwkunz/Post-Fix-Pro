@@ -373,6 +373,16 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn real_part(&mut self) -> ApiResponse {
+        let result = self.calculator.real_part();
+        self.wrap(result)
+    }
+
+    pub fn imag_part(&mut self) -> ApiResponse {
+        let result = self.calculator.imag_part();
+        self.wrap(result)
+    }
+
     pub fn atan2(&mut self) -> ApiResponse {
         let result = self.calculator.atan2();
         self.wrap(result)
@@ -950,6 +960,16 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn real_part(&mut self) -> String {
+            serde_json::to_string(&self.inner.real_part())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn imag_part(&mut self) -> String {
+            serde_json::to_string(&self.inner.imag_part())
+                .expect("response serialization should succeed")
+        }
+
         pub fn atan2(&mut self) -> String {
             serde_json::to_string(&self.inner.atan2())
                 .expect("response serialization should succeed")
@@ -1230,6 +1250,29 @@ mod tests {
         assert!(response.ok);
         assert_eq!(response.error, None);
         assert_eq!(response.state.stack, vec![ApiValue::Real { value: 5.0 }]);
+    }
+
+    #[test]
+    fn complex_real_and_imag_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_complex(ComplexInput { re: -2.0, im: 7.0 });
+
+        let real_response = api.real_part();
+        assert!(real_response.ok);
+        assert_eq!(
+            real_response.state.stack,
+            vec![ApiValue::Real { value: -2.0 }]
+        );
+
+        api.clear_all();
+        api.push_complex(ComplexInput { re: -2.0, im: 7.0 });
+
+        let imag_response = api.imag_part();
+        assert!(imag_response.ok);
+        assert_eq!(
+            imag_response.state.stack,
+            vec![ApiValue::Real { value: 7.0 }]
+        );
     }
 
     #[test]

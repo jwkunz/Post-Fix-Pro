@@ -830,6 +830,26 @@ impl Calculator {
         })
     }
 
+    pub fn real_part(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(v) => Ok(Value::Real(*v)),
+            Value::Complex(c) => Ok(Value::Real(c.re)),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "real() does not support matrix values".to_string(),
+            )),
+        })
+    }
+
+    pub fn imag_part(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Real(_) => Ok(Value::Real(0.0)),
+            Value::Complex(c) => Ok(Value::Real(c.im)),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(
+                "imag() does not support matrix values".to_string(),
+            )),
+        })
+    }
+
     pub fn atan2(&mut self) -> Result<(), CalcError> {
         let mode = self.state.angle_mode;
         self.apply_binary_op(|left, right| match (left, right) {
@@ -3512,6 +3532,21 @@ mod tests {
             calc.state().stack,
             vec![Value::Complex(Complex { re: -2.0, im: -7.0 })]
         );
+
+        calc.clear_all();
+        calc.push_value(Value::Complex(Complex { re: -2.0, im: 7.0 }));
+        assert_eq!(calc.real_part(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(-2.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Complex(Complex { re: -2.0, im: 7.0 }));
+        assert_eq!(calc.imag_part(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(7.0)]);
+
+        calc.clear_all();
+        calc.push_value(Value::Real(5.0));
+        assert_eq!(calc.imag_part(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(0.0)]);
     }
 
     #[test]

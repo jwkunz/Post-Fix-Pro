@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -565,10 +566,11 @@
     }
   </style>
 </head>
+
 <body>
   <main class="app">
     <section class="panel stack-panel">
-      <h2 class="stack-title">Stack (Top at Bottom)</h2>
+      <h2 class="stack-title">Stack</h2>
       <ol id="stack-list" class="stack"></ol>
       <p class="hint" id="runtime-hint">
         Loading WASM runtime...
@@ -589,7 +591,8 @@
       </div>
       <div class="display">
         <div id="entry-display" class="entry">0</div>
-        <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false" autocomplete="off" aria-label="Scalar entry edit">
+        <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false"
+          autocomplete="off" aria-label="Scalar entry edit">
         <div id="error-display" class="error ok"></div>
       </div>
       <p class="keypad-guide">RPN flow: build number -> <code>Enter</code> -> apply operation.</p>
@@ -639,7 +642,7 @@
       </div>
       <div class="matrix-size-controls">
         <div class="matrix-size-group">
-          <strong>Size A</strong>
+          <strong>Size</strong>
           <div class="matrix-size-row">
             <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix Entry rows">
             <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix Entry columns">
@@ -650,14 +653,15 @@
       <div class="matrix-actions">
         <button class="fn" id="push-a-btn">Push</button>
         <button class="fn" id="preset-a-btn">Preset</button>
-        <button class="fn" id="stack-vec-btn">stack vec</button>
-        <button class="fn" id="import-csv-btn">Import CSV -> A</button>
-        <button class="fn" id="export-csv-btn">Export Top CSV</button>
-        <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
         <div class="identity">
           <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
           <button class="fn" id="push-identity-btn">Preset I(n)</button>
         </div>
+        <button class="fn" id="import-csv-btn">Import CSV</button>
+        <button class="fn" id="export-csv-btn">Export CSV</button>
+        <button class="fn" id="stack-vec-btn">stack vec</button>
+        <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
+
       </div>
     </section>
 
@@ -740,6 +744,8 @@
         <button class="fn" data-action="abs-sq">abs^2</button>
         <button class="fn" data-action="arg">arg</button>
         <button class="fn" data-action="conjugate">conj</button>
+        <button class="fn" data-action="real-part">real()</button>
+        <button class="fn" data-action="imag-part">imag()</button>
       </div>
     </section>
 
@@ -786,6 +792,7 @@
         <button class="fn" data-action="pi">π</button>
         <button class="fn" data-action="e">e</button>
         <button class="fn" data-action="const-euler-gamma">γ</button>
+        <button class="fn" data-action="const-psi">ψ</button>
         <button class="fn" data-action="const-c">c</button>
         <button class="fn" data-action="const-mol">mol</button>
         <button class="fn" data-action="const-k">k</button>
@@ -809,8 +816,10 @@
           </select>
         </div>
         <div class="complex-row">
-          <input id="complex-re-input" type="text" value="0" aria-label="Complex value A" spellcheck="false" autocomplete="off">
-          <input id="complex-im-input" type="text" value="1" aria-label="Complex value B" spellcheck="false" autocomplete="off">
+          <input id="complex-re-input" type="text" value="0" aria-label="Complex value A" spellcheck="false"
+            autocomplete="off">
+          <input id="complex-im-input" type="text" value="1" aria-label="Complex value B" spellcheck="false"
+            autocomplete="off">
           <button class="fn" id="push-complex-btn">Push a+bi</button>
         </div>
       </section>
@@ -1544,6 +1553,7 @@
       }
       const constantMap = {
         "const-euler-gamma": 0.5772156649015329,
+        "const-psi": 1.618033988749895,
         "const-c": 299792458.0,
         "const-mol": 6.02214076e23,
         "const-k": 1.380649e-23,
@@ -1597,6 +1607,8 @@
         "abs-sq": "abs_sq",
         arg: "arg",
         conjugate: "conjugate",
+        "real-part": "real_part",
+        "imag-part": "imag_part",
         atan2: "atan2",
         "to-rad": "to_rad",
         "to-deg": "to_deg",
@@ -1901,4 +1913,5 @@
     boot();
   </script>
 </body>
+
 </html>

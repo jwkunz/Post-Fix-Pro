@@ -113,6 +113,8 @@ Example:
 - `abs^2`: squared magnitude
 - `arg`: phase/argument (respects RAD/DEG mode)
 - `conj`: complex conjugate
+- `real()`: real part of top scalar
+- `imag()`: imaginary part of top scalar
 - Complex entry mode selector:
   - `a + bi`: enter real and imaginary parts directly
   - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
@@ -149,6 +151,7 @@ Example:
 - `pi`: π
 - `e`: Euler's number
 - `gamma`: Euler-Mascheroni constant `0.5772156649015329`
+- `ψ`: golden ratio `1.618033988749895`
 - `c`: speed of light `299792458`
 - `mol`: Avogadro constant `6.02214076E23`
 - `k`: Boltzmann constant `1.380649E-23`
