@@ -481,6 +481,36 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn mean(&mut self) -> ApiResponse {
+        let result = self.calculator.mean();
+        self.wrap(result)
+    }
+
+    pub fn mode(&mut self) -> ApiResponse {
+        let result = self.calculator.mode();
+        self.wrap(result)
+    }
+
+    pub fn variance(&mut self) -> ApiResponse {
+        let result = self.calculator.variance();
+        self.wrap(result)
+    }
+
+    pub fn std_dev(&mut self) -> ApiResponse {
+        let result = self.calculator.std_dev();
+        self.wrap(result)
+    }
+
+    pub fn max_value(&mut self) -> ApiResponse {
+        let result = self.calculator.max_value();
+        self.wrap(result)
+    }
+
+    pub fn min_value(&mut self) -> ApiResponse {
+        let result = self.calculator.min_value();
+        self.wrap(result)
+    }
+
     pub fn push_identity(&mut self, size: usize) -> ApiResponse {
         let result = self.calculator.push_identity(size);
         self.wrap(result)
@@ -992,6 +1022,36 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn mean(&mut self) -> String {
+            serde_json::to_string(&self.inner.mean())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn mode(&mut self) -> String {
+            serde_json::to_string(&self.inner.mode())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn variance(&mut self) -> String {
+            serde_json::to_string(&self.inner.variance())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn std_dev(&mut self) -> String {
+            serde_json::to_string(&self.inner.std_dev())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn max_value(&mut self) -> String {
+            serde_json::to_string(&self.inner.max_value())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn min_value(&mut self) -> String {
+            serde_json::to_string(&self.inner.min_value())
+                .expect("response serialization should succeed")
+        }
+
         pub fn push_identity(&mut self, size: usize) -> String {
             serde_json::to_string(&self.inner.push_identity(size))
                 .expect("response serialization should succeed")
@@ -1164,6 +1224,117 @@ mod tests {
         assert_eq!(
             norm_response.state.stack,
             vec![ApiValue::Real { value: 5.0 }]
+        );
+    }
+
+    #[test]
+    fn vector_statistics_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 5,
+            data: vec![
+                c(1.0, 0.0),
+                c(2.0, 0.0),
+                c(2.0, 0.0),
+                c(4.0, 0.0),
+                c(5.0, 0.0),
+            ],
+        });
+
+        let mean_response = api.mean();
+        assert!(mean_response.ok);
+        assert_eq!(
+            mean_response.state.stack,
+            vec![ApiValue::Real { value: 2.8 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 5,
+            data: vec![
+                c(1.0, 0.0),
+                c(2.0, 0.0),
+                c(2.0, 0.0),
+                c(4.0, 0.0),
+                c(5.0, 0.0),
+            ],
+        });
+
+        let mode_response = api.mode();
+        assert!(mode_response.ok);
+        assert_eq!(
+            mode_response.state.stack,
+            vec![ApiValue::Real { value: 2.0 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 2,
+            data: vec![c(3.0, 0.0), c(4.0, 0.0)],
+        });
+
+        let variance_response = api.variance();
+        assert!(variance_response.ok);
+        assert_eq!(
+            variance_response.state.stack,
+            vec![ApiValue::Real { value: 0.25 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 2,
+            data: vec![c(3.0, 0.0), c(4.0, 0.0)],
+        });
+
+        let std_response = api.std_dev();
+        assert!(std_response.ok);
+        assert_eq!(
+            std_response.state.stack,
+            vec![ApiValue::Real { value: 0.5 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 5,
+            data: vec![
+                c(1.0, 0.0),
+                c(2.0, 0.0),
+                c(2.0, 0.0),
+                c(4.0, 0.0),
+                c(5.0, 0.0),
+            ],
+        });
+
+        let max_response = api.max_value();
+        assert!(max_response.ok);
+        assert_eq!(
+            max_response.state.stack,
+            vec![ApiValue::Real { value: 5.0 }]
+        );
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 1,
+            cols: 5,
+            data: vec![
+                c(1.0, 0.0),
+                c(2.0, 0.0),
+                c(2.0, 0.0),
+                c(4.0, 0.0),
+                c(5.0, 0.0),
+            ],
+        });
+
+        let min_response = api.min_value();
+        assert!(min_response.ok);
+        assert_eq!(
+            min_response.state.stack,
+            vec![ApiValue::Real { value: 1.0 }]
         );
     }
 

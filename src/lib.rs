@@ -1076,6 +1076,60 @@ impl Calculator {
         })
     }
 
+    pub fn mean(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mean(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "mean requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn mode(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mode(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "mode requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn variance(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_variance(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "variance requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn std_dev(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_std_dev(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "std_dev requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn max_value(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_max(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "max requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn min_value(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_min(matrix)?)),
+            _ => Err(CalcError::TypeMismatch(
+                "min requires a vector matrix value".to_string(),
+            )),
+        })
+    }
+
     fn require_stack_len(&self, needed: usize) -> Result<(), CalcError> {
         let available = self.state.stack.len();
         if available < needed {
@@ -1555,6 +1609,92 @@ impl Calculator {
             .map(|value| Self::to_complex64(*value).norm().powf(p))
             .sum::<f64>();
         Ok(sum.powf(1.0 / p))
+    }
+
+    fn matrix_real_vector(matrix: &Matrix) -> Result<Vec<f64>, CalcError> {
+        if matrix.rows != 1 && matrix.cols != 1 {
+            return Err(CalcError::TypeMismatch(format!(
+                "expected vector shape Nx1 or 1xN, got {}x{}",
+                matrix.rows, matrix.cols
+            )));
+        }
+
+        let mut out = Vec::with_capacity(matrix.data.len());
+        for value in &matrix.data {
+            if value.im.abs() > 1e-12 {
+                return Err(CalcError::TypeMismatch(
+                    "statistics operations currently require real-valued vectors".to_string(),
+                ));
+            }
+            out.push(value.re);
+        }
+
+        if out.is_empty() {
+            return Err(CalcError::InvalidInput(
+                "statistics operations require at least one value".to_string(),
+            ));
+        }
+
+        Ok(out)
+    }
+
+    fn matrix_mean(matrix: &Matrix) -> Result<f64, CalcError> {
+        let values = Self::matrix_real_vector(matrix)?;
+        let sum = values.iter().sum::<f64>();
+        Ok(sum / values.len() as f64)
+    }
+
+    fn matrix_mode(matrix: &Matrix) -> Result<f64, CalcError> {
+        let values = Self::matrix_real_vector(matrix)?;
+        let mut counts = std::collections::HashMap::<i64, (usize, f64)>::new();
+        for value in values {
+            let key = (value * 1e12).round() as i64;
+            let entry = counts.entry(key).or_insert((0, value));
+            entry.0 += 1;
+        }
+
+        let (_, mode) = counts
+            .into_values()
+            .max_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.total_cmp(&b.1)))
+            .ok_or_else(|| {
+                CalcError::InvalidInput("mode requires at least one value".to_string())
+            })?;
+
+        Ok(mode)
+    }
+
+    fn matrix_variance(matrix: &Matrix) -> Result<f64, CalcError> {
+        let values = Self::matrix_real_vector(matrix)?;
+        let mean = values.iter().sum::<f64>() / values.len() as f64;
+        let var = values
+            .iter()
+            .map(|value| {
+                let d = *value - mean;
+                d * d
+            })
+            .sum::<f64>()
+            / values.len() as f64;
+        Ok(var)
+    }
+
+    fn matrix_std_dev(matrix: &Matrix) -> Result<f64, CalcError> {
+        Ok(Self::matrix_variance(matrix)?.sqrt())
+    }
+
+    fn matrix_max(matrix: &Matrix) -> Result<f64, CalcError> {
+        let values = Self::matrix_real_vector(matrix)?;
+        values
+            .into_iter()
+            .max_by(|a, b| a.total_cmp(b))
+            .ok_or_else(|| CalcError::InvalidInput("max requires at least one value".to_string()))
+    }
+
+    fn matrix_min(matrix: &Matrix) -> Result<f64, CalcError> {
+        let values = Self::matrix_real_vector(matrix)?;
+        values
+            .into_iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .ok_or_else(|| CalcError::InvalidInput("min requires at least one value".to_string()))
     }
 
     fn matrix_transpose(matrix: &Matrix) -> Matrix {
@@ -2241,6 +2381,58 @@ mod tests {
         match calc.state().stack.as_slice() {
             [Value::Real(v)] => assert_real_close(*v, 5.0, 1e-12),
             other => panic!("expected real norm value, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn vector_statistics_ops() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(matrix(1, 5, &[1.0, 2.0, 2.0, 4.0, 5.0])));
+
+        assert_eq!(calc.mean(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 2.8, 1e-12),
+            other => panic!("expected real mean value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 5, &[1.0, 2.0, 2.0, 4.0, 5.0])));
+        assert_eq!(calc.mode(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 2.0, 1e-12),
+            other => panic!("expected real mode value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[3.0, 4.0])));
+        assert_eq!(calc.variance(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 0.25, 1e-12),
+            other => panic!("expected real variance value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 2, &[3.0, 4.0])));
+        assert_eq!(calc.std_dev(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 0.5, 1e-12),
+            other => panic!("expected real std_dev value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 5, &[1.0, 2.0, 2.0, 4.0, 5.0])));
+        assert_eq!(calc.max_value(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 5.0, 1e-12),
+            other => panic!("expected real max value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(matrix(1, 5, &[1.0, 2.0, 2.0, 4.0, 5.0])));
+        assert_eq!(calc.min_value(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 1.0, 1e-12),
+            other => panic!("expected real min value, got {other:?}"),
         }
     }
 
