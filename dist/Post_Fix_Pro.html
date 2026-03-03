@@ -2091,6 +2091,11 @@
         call("swap");
         return;
       }
+      if (event.key === "u" || event.key === "U") {
+        event.preventDefault();
+        call("undo");
+        return;
+      }
       if (event.key === "r" || event.key === "R") {
         event.preventDefault();
         beginPendingCommand("roll");

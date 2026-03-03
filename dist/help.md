@@ -208,6 +208,7 @@ Example:
 - `Delete`: `Drop`
 - `d`: `Dup`
 - `s`: `Swap`
+- `u`: `undo`
 - `r` then digits then `Enter`/`Space`: `roll(n)`
 - `p` then digits then `Enter`/`Space`: `pick(n)`
 - `Esc`: cancel pending `r`/`p` sequence or close Help dialog
