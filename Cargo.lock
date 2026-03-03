@@ -309,7 +309,7 @@ dependencies = [
 
 [[package]]
 name = "webcalculator_backend"
-version = "2.30.0"
+version = "2.30.1"
 dependencies = [
  "nalgebra",
  "num-complex",
