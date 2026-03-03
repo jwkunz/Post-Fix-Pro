@@ -668,6 +668,8 @@
           <button class="fn" data-action="norm-p">norm_p</button>
           <button class="fn" data-action="diag">diag</button>
           <button class="fn" data-action="mat-exp">MatExp</button>
+          <button class="fn" data-action="hermitian">Herm</button>
+          <button class="fn" data-action="mat-pow">MatPow</button>
           <button class="fn" data-action="qr">QR</button>
           <button class="fn" data-action="lu">LU</button>
           <button class="fn" data-action="svd">SVD</button>
@@ -1189,9 +1191,9 @@
       let depth = 0;
       for (let i = 0; i < rowText.length; i += 1) {
         const ch = rowText[i];
-        if (ch === """) {
-          if (inQuotes && rowText[i + 1] === """) {
-            current += """;
+        if (ch === "\"") {
+          if (inQuotes && rowText[i + 1] === "\"") {
+            current += "\"";
             i += 1;
           } else {
             inQuotes = !inQuotes;
@@ -1273,7 +1275,7 @@
       const im = Number(entry && entry.im !== undefined ? entry.im : 0);
       if (Math.abs(im) < 1e-12) return re.toString();
       const text = "(" + re.toString() + "," + im.toString() + ")";
-      return """ + text + """;
+      return "\"" + text + "\"";
     }
 
     function exportTopMatrixToCsv() {
@@ -1603,7 +1605,13 @@
         cross: "cross",
         "norm-p": "norm_p",
         diag: "diag",
-        "mat-exp": "mat_exp"
+        "mat-exp": "mat_exp",
+        hermitian: "hermitian",
+        "mat-pow": "mat_pow",
+        qr: "qr",
+        lu: "lu",
+        svd: "svd",
+        evd: "evd"
       };
       const method = opMap[action];
       if (!method) return;

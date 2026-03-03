@@ -1095,6 +1095,31 @@ impl Calculator {
         })
     }
 
+    pub fn hermitian(&mut self) -> Result<(), CalcError> {
+        self.apply_unary_op(|value| match value {
+            Value::Matrix(matrix) => Ok(Value::Matrix(Self::matrix_hermitian(matrix))),
+            _ => Err(CalcError::TypeMismatch(
+                "Hermitian requires a matrix value".to_string(),
+            )),
+        })
+    }
+
+    pub fn mat_pow(&mut self) -> Result<(), CalcError> {
+        self.apply_binary_op(|left, right| match (left, right) {
+            (Value::Matrix(matrix), Value::Real(exp)) => {
+                let power = Self::as_integer(*exp, "matrix power")?;
+                Ok(Value::Matrix(Self::matrix_mat_pow(matrix, power)?))
+            }
+            (Value::Matrix(matrix), Value::Complex(exp)) if exp.im.abs() <= 1e-12 => {
+                let power = Self::as_integer(exp.re, "matrix power")?;
+                Ok(Value::Matrix(Self::matrix_mat_pow(matrix, power)?))
+            }
+            _ => Err(CalcError::TypeMismatch(
+                "MatPow requires a matrix followed by an integer exponent".to_string(),
+            )),
+        })
+    }
+
     pub fn qr(&mut self) -> Result<(), CalcError> {
         self.require_stack_len(1)?;
         let len = self.state.stack.len();
@@ -1745,6 +1770,52 @@ impl Calculator {
         }
 
         Matrix::new(n, n, out)
+    }
+
+    fn matrix_hermitian(matrix: &Matrix) -> Matrix {
+        let mut out = vec![Complex { re: 0.0, im: 0.0 }; matrix.data.len()];
+        for row in 0..matrix.rows {
+            for col in 0..matrix.cols {
+                let value = matrix.data[row * matrix.cols + col];
+                out[col * matrix.rows + row] = Complex {
+                    re: value.re,
+                    im: -value.im,
+                };
+            }
+        }
+        Matrix {
+            rows: matrix.cols,
+            cols: matrix.rows,
+            data: out,
+        }
+    }
+
+    fn matrix_mat_pow(matrix: &Matrix, exponent: i64) -> Result<Matrix, CalcError> {
+        Self::require_square(matrix, "MatPow")?;
+        let n = matrix.rows;
+        if exponent == 0 {
+            return Ok(Self::matrix_identity(n));
+        }
+
+        let mut base = if exponent < 0 {
+            Self::matrix_inverse(matrix)?
+        } else {
+            matrix.clone()
+        };
+        let mut exp = exponent.unsigned_abs();
+        let mut result = Self::matrix_identity(n);
+
+        while exp > 0 {
+            if (exp & 1) == 1 {
+                result = Self::matrix_mul(&result, &base)?;
+            }
+            exp >>= 1;
+            if exp > 0 {
+                base = Self::matrix_mul(&base, &base)?;
+            }
+        }
+
+        Ok(result)
     }
 
     fn dmatrix_to_matrix(matrix: &DMatrix<Complex64>) -> Matrix {
@@ -2804,6 +2875,68 @@ mod tests {
                 assert_matrix_close(actual, &expected, 1e-10);
             }
             other => panic!("expected matrix MatExp value, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn hermitian_and_mat_pow() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Matrix(
+            Matrix::new(
+                2,
+                2,
+                vec![
+                    Complex { re: 1.0, im: 2.0 },
+                    Complex { re: 3.0, im: -1.0 },
+                    Complex { re: -4.0, im: 0.5 },
+                    Complex { re: 2.0, im: 0.0 },
+                ],
+            )
+            .expect("valid matrix"),
+        ));
+
+        assert_eq!(calc.hermitian(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => {
+                let expected = Matrix::new(
+                    2,
+                    2,
+                    vec![
+                        Complex { re: 1.0, im: -2.0 },
+                        Complex { re: -4.0, im: -0.5 },
+                        Complex { re: 3.0, im: 1.0 },
+                        Complex { re: 2.0, im: -0.0 },
+                    ],
+                )
+                .expect("valid matrix");
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("expected Hermitian matrix, got {other:?}"),
+        }
+
+        calc.clear_all();
+        let base = matrix(2, 2, &[2.0, 0.0, 0.0, 3.0]);
+        calc.push_value(Value::Matrix(base.clone()));
+        calc.push_value(Value::Real(3.0));
+        assert_eq!(calc.mat_pow(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => {
+                let expected = matrix(2, 2, &[8.0, 0.0, 0.0, 27.0]);
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("expected MatPow matrix, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(base));
+        calc.push_value(Value::Real(-1.0));
+        assert_eq!(calc.mat_pow(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(actual)] => {
+                let expected = matrix(2, 2, &[0.5, 0.0, 0.0, 1.0 / 3.0]);
+                assert_matrix_close(actual, &expected, 1e-12);
+            }
+            other => panic!("expected inverse MatPow matrix, got {other:?}"),
         }
     }
 

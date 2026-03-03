@@ -493,6 +493,16 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn hermitian(&mut self) -> ApiResponse {
+        let result = self.calculator.hermitian();
+        self.wrap(result)
+    }
+
+    pub fn mat_pow(&mut self) -> ApiResponse {
+        let result = self.calculator.mat_pow();
+        self.wrap(result)
+    }
+
     pub fn qr(&mut self) -> ApiResponse {
         let result = self.calculator.qr();
         self.wrap(result)
@@ -1083,6 +1093,16 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn hermitian(&mut self) -> String {
+            serde_json::to_string(&self.inner.hermitian())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn mat_pow(&mut self) -> String {
+            serde_json::to_string(&self.inner.mat_pow())
+                .expect("response serialization should succeed")
+        }
+
         pub fn qr(&mut self) -> String {
             serde_json::to_string(&self.inner.qr()).expect("response serialization should succeed")
         }
@@ -1352,6 +1372,39 @@ mod tests {
                 assert!((data[3].re - std::f64::consts::E.powi(2)).abs() < 1e-10);
             }
             other => panic!("expected matrix response, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn hermitian_and_mat_pow_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(1.0, 2.0), c(3.0, -1.0), c(-4.0, 0.5), c(2.0, 0.0)],
+        });
+
+        let herm_response = api.hermitian();
+        assert!(herm_response.ok);
+        assert_eq!(herm_response.state.stack.len(), 1);
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(2.0, 0.0), c(0.0, 0.0), c(0.0, 0.0), c(3.0, 0.0)],
+        });
+        api.push_real(3.0);
+
+        let pow_response = api.mat_pow();
+        assert!(pow_response.ok);
+        match pow_response.state.stack.as_slice() {
+            [ApiValue::Matrix { rows, cols, data }] => {
+                assert_eq!((*rows, *cols), (2, 2));
+                assert!((data[0].re - 8.0).abs() < 1e-12);
+                assert!((data[3].re - 27.0).abs() < 1e-12);
+            }
+            other => panic!("expected matrix mat_pow output, got {other:?}"),
         }
     }
 
