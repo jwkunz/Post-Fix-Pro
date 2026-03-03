@@ -764,6 +764,9 @@
         <button class="fn" data-action="conjugate">conj</button>
         <button class="fn" data-action="real-part">real()</button>
         <button class="fn" data-action="imag-part">imag()</button>
+        <button class="fn" data-action="cart">cart</button>
+        <button class="fn" data-action="pol">pol</button>
+        <button class="fn" data-action="npol">npol</button>
       </div>
     </section>
 
@@ -823,24 +826,6 @@
 
     <section class="panel">
       <h3 class="panel-title">Other</h3>
-      <section class="complex-tools">
-        <h3>Complex Entry</h3>
-        <div class="complex-mode-row">
-          <label for="complex-entry-mode">Mode</label>
-          <select id="complex-entry-mode" aria-label="Complex entry mode">
-            <option value="cartesian">a + bi</option>
-            <option value="polar">mag + arg</option>
-            <option value="exp2pi">a * exp(i 2 pi b)</option>
-          </select>
-        </div>
-        <div class="complex-row">
-          <input id="complex-re-input" type="text" value="0" aria-label="Complex value A" spellcheck="false"
-            autocomplete="off">
-          <input id="complex-im-input" type="text" value="1" aria-label="Complex value B" spellcheck="false"
-            autocomplete="off">
-          <button class="fn" id="push-complex-btn">Push a+bi</button>
-        </div>
-      </section>
       <section class="memory-tools">
         <h3>Memory A-Z</h3>
         <div class="memory-row">
@@ -889,10 +874,6 @@
     const vravelBtn = document.getElementById("vravel-btn");
     const identitySizeInput = document.getElementById("identity-size-input");
     const pushIdentityBtn = document.getElementById("push-identity-btn");
-    const complexEntryMode = document.getElementById("complex-entry-mode");
-    const complexReInput = document.getElementById("complex-re-input");
-    const complexImInput = document.getElementById("complex-im-input");
-    const pushComplexBtn = document.getElementById("push-complex-btn");
     const advancedActionPanels = document.querySelectorAll("[data-advanced-actions]");
     const hypToggleBtn = document.getElementById("hyp-toggle-btn");
     const memoryRegisterInput = document.getElementById("memory-register-input");
@@ -1374,69 +1355,6 @@
       setError("");
     }
 
-    function pushComplexFromInputs() {
-      const parsedA = parseFreeFormNumber(complexReInput.value, "first complex field");
-      if (!parsedA.ok) {
-        setError(parsedA.error);
-        return;
-      }
-      const parsedB = parseFreeFormNumber(complexImInput.value, "second complex field");
-      if (!parsedB.ok) {
-        setError(parsedB.error);
-        return;
-      }
-      const a = parsedA.value;
-      const b = parsedB.value;
-      let re = a;
-      let im = b;
-      if (complexEntryMode.value === "polar") {
-        const angleMode = String(lastState?.angle_mode || "rad").toLowerCase();
-        const theta = angleMode === "deg" ? (b * Math.PI / 180.0) : b;
-        re = a * Math.cos(theta);
-        im = a * Math.sin(theta);
-      } else if (complexEntryMode.value === "exp2pi") {
-        const theta = 2.0 * Math.PI * b;
-        re = a * Math.cos(theta);
-        im = a * Math.sin(theta);
-      }
-      call("push_complex", re, im);
-    }
-
-    function parseFreeFormNumber(raw, fieldLabel) {
-      const text = String(raw ?? "").trim();
-      if (!text) {
-        return { ok: false, error: `${fieldLabel} is empty` };
-      }
-      const value = Number(text);
-      if (!Number.isFinite(value)) {
-        return { ok: false, error: `${fieldLabel} is not a valid number: ${text}` };
-      }
-      return { ok: true, value };
-    }
-
-    function syncComplexEntryModeUI() {
-      const mode = complexEntryMode.value;
-      if (mode === "polar") {
-        complexReInput.placeholder = "magnitude";
-        complexImInput.placeholder = "arg";
-        complexReInput.setAttribute("aria-label", "Complex magnitude");
-        complexImInput.setAttribute("aria-label", "Complex argument");
-        pushComplexBtn.textContent = "Push mag∠arg";
-      } else if (mode === "exp2pi") {
-        complexReInput.placeholder = "a";
-        complexImInput.placeholder = "b";
-        complexReInput.setAttribute("aria-label", "Complex scale a");
-        complexImInput.setAttribute("aria-label", "Complex phase cycles b");
-        pushComplexBtn.textContent = "Push a·exp(i2πb)";
-      } else {
-        complexReInput.placeholder = "real";
-        complexImInput.placeholder = "imag";
-        complexReInput.setAttribute("aria-label", "Complex real part");
-        complexImInput.setAttribute("aria-label", "Complex imaginary part");
-        pushComplexBtn.textContent = "Push a+bi";
-      }
-    }
-
     function presetIdentityInEntry() {
       const size = Number(identitySizeInput.value);
       if (!Number.isInteger(size) || size <= 0) {
@@ -1675,6 +1593,9 @@
         conjugate: "conjugate",
         "real-part": "real_part",
         "imag-part": "imag_part",
+        cart: "cart",
+        pol: "pol",
+        npol: "npol",
         atan2: "atan2",
         "to-rad": "to_rad",
         "to-deg": "to_deg",
@@ -1838,16 +1759,6 @@
       call("vravel");
     });
 
-    pushComplexBtn.addEventListener("click", () => {
-      if (!wasmCalc) return;
-      pushComplexFromInputs();
-    });
-
-    complexEntryMode.addEventListener("change", () => {
-      syncComplexEntryModeUI();
-      setError("");
-    });
-
     memoryStoreBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       const index = parseRegisterIndex();
@@ -1987,7 +1898,6 @@
         }
 
         wasmCalc = new wasm_bindgen.WasmCalculator();
-        syncComplexEntryModeUI();
         applyHypModeUI();
         runtimeHint.textContent = "WASM runtime loaded.";
         const initial = JSON.parse(wasmCalc.snapshot_json());
@@ -2004,7 +1914,6 @@
       }
     }
 
-    syncComplexEntryModeUI();
     boot();
   </script>
 </body>

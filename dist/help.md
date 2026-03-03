@@ -133,13 +133,15 @@ Example:
 - `conj`: complex conjugate
 - `real()`: real part of top scalar
 - `imag()`: imaginary part of top scalar
-- Complex entry mode selector:
-  - `a + bi`: enter real and imaginary parts directly
-  - `mag + arg`: enter magnitude and argument, converted using current RAD/DEG mode
-  - `a * exp(i 2 pi b)`: enter scale `a` and cycle phase `b` (`theta = 2πb`)
-- Complex fields accept free-form text while typing; parsing/validation happens when pressing `Push ...`
-- Scientific notation is supported in complex fields (e.g. `2.5E2`)
-- `Push ...`: pushes the converted complex value onto the stack
+- `cart`: two-way conversion
+  - if top is complex: decomposes to `real`, `imag`
+  - else if top two are real scalars: composes `a + bi`
+- `pol`: two-way conversion
+  - if top is complex: decomposes to `magnitude`, `arg` (RAD/DEG aware)
+  - else if top two are real scalars: composes from `magnitude`, `arg` (RAD/DEG aware)
+- `npol`: two-way conversion
+  - if top is complex: decomposes to `magnitude`, `cycles` where `arg = 2π*cycles`
+  - else if top two are real scalars: composes from `magnitude`, `cycles`
 
 ### Integer / Number Tools
 

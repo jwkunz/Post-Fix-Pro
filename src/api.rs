@@ -388,6 +388,21 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn cart(&mut self) -> ApiResponse {
+        let result = self.calculator.cart();
+        self.wrap(result)
+    }
+
+    pub fn pol(&mut self) -> ApiResponse {
+        let result = self.calculator.pol();
+        self.wrap(result)
+    }
+
+    pub fn npol(&mut self) -> ApiResponse {
+        let result = self.calculator.npol();
+        self.wrap(result)
+    }
+
     pub fn atan2(&mut self) -> ApiResponse {
         let result = self.calculator.atan2();
         self.wrap(result)
@@ -1017,6 +1032,20 @@ mod wasm {
                 .expect("response serialization should succeed")
         }
 
+        pub fn cart(&mut self) -> String {
+            serde_json::to_string(&self.inner.cart())
+                .expect("response serialization should succeed")
+        }
+
+        pub fn pol(&mut self) -> String {
+            serde_json::to_string(&self.inner.pol()).expect("response serialization should succeed")
+        }
+
+        pub fn npol(&mut self) -> String {
+            serde_json::to_string(&self.inner.npol())
+                .expect("response serialization should succeed")
+        }
+
         pub fn atan2(&mut self) -> String {
             serde_json::to_string(&self.inner.atan2())
                 .expect("response serialization should succeed")
@@ -1350,6 +1379,63 @@ mod tests {
             imag_response.state.stack,
             vec![ApiValue::Real { value: 7.0 }]
         );
+    }
+
+    #[test]
+    fn cart_pol_npol_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_real(3.0);
+        api.push_real(4.0);
+        let cart_response = api.cart();
+        assert!(cart_response.ok);
+        assert_eq!(
+            cart_response.state.stack,
+            vec![ApiValue::Complex { re: 3.0, im: 4.0 }]
+        );
+
+        let cart_back = api.cart();
+        assert!(cart_back.ok);
+        assert_eq!(
+            cart_back.state.stack,
+            vec![ApiValue::Real { value: 3.0 }, ApiValue::Real { value: 4.0 }]
+        );
+
+        api.clear_all();
+        api.set_angle_mode(ApiAngleMode::Deg);
+        api.push_real(2.0);
+        api.push_real(90.0);
+        let pol_response = api.pol();
+        assert!(pol_response.ok);
+        match pol_response.state.stack.as_slice() {
+            [ApiValue::Complex { re, im }] => {
+                assert!(re.abs() < 1e-10);
+                assert!((im - 2.0).abs() < 1e-10);
+            }
+            other => panic!("expected complex output, got {other:?}"),
+        }
+
+        let pol_back = api.pol();
+        assert!(pol_back.ok);
+        match pol_back.state.stack.as_slice() {
+            [ApiValue::Real { value: mag }, ApiValue::Real { value: arg }] => {
+                assert!((mag - 2.0).abs() < 1e-10);
+                assert!((arg - 90.0).abs() < 1e-10);
+            }
+            other => panic!("expected mag/arg output, got {other:?}"),
+        }
+
+        api.clear_all();
+        api.push_real(2.0);
+        api.push_real(0.25);
+        let npol_response = api.npol();
+        assert!(npol_response.ok);
+        match npol_response.state.stack.as_slice() {
+            [ApiValue::Complex { re, im }] => {
+                assert!(re.abs() < 1e-10);
+                assert!((im - 2.0).abs() < 1e-10);
+            }
+            other => panic!("expected complex output, got {other:?}"),
+        }
     }
 
     #[test]

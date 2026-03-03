@@ -56,6 +56,13 @@ pub enum DisplayMode {
     Eng,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ComplexTransformMode {
+    Cartesian,
+    Polar,
+    NormalizedPolar,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CalcError {
     StackUnderflow { needed: usize, available: usize },
@@ -1001,6 +1008,18 @@ impl Calculator {
         })
     }
 
+    pub fn cart(&mut self) -> Result<(), CalcError> {
+        self.complex_stack_transform(ComplexTransformMode::Cartesian)
+    }
+
+    pub fn pol(&mut self) -> Result<(), CalcError> {
+        self.complex_stack_transform(ComplexTransformMode::Polar)
+    }
+
+    pub fn npol(&mut self) -> Result<(), CalcError> {
+        self.complex_stack_transform(ComplexTransformMode::NormalizedPolar)
+    }
+
     pub fn atan2(&mut self) -> Result<(), CalcError> {
         let mode = self.state.angle_mode;
         self.apply_binary_op(|left, right| {
@@ -1912,6 +1931,75 @@ impl Calculator {
                 "{op} does not support matrix values"
             ))),
         }
+    }
+
+    fn as_real_scalar(value: &Value, label: &str) -> Result<f64, CalcError> {
+        match value {
+            Value::Real(v) => Ok(*v),
+            Value::Complex(c) if c.im.abs() <= 1e-12 => Ok(c.re),
+            Value::Complex(_) => Err(CalcError::TypeMismatch(format!(
+                "{label} requires real scalar inputs"
+            ))),
+            Value::Matrix(_) => Err(CalcError::TypeMismatch(format!(
+                "{label} requires scalar inputs"
+            ))),
+        }
+    }
+
+    fn complex_stack_transform(&mut self, mode: ComplexTransformMode) -> Result<(), CalcError> {
+        self.require_stack_len(1)?;
+        let len = self.state.stack.len();
+        let angle_mode = self.state.angle_mode;
+        if let Some(Value::Complex(c)) = self.state.stack.get(len - 1) {
+            let (a, b) = match mode {
+                ComplexTransformMode::Cartesian => (c.re, c.im),
+                ComplexTransformMode::Polar => {
+                    let mag = (c.re * c.re + c.im * c.im).sqrt();
+                    let mut arg = c.im.atan2(c.re);
+                    if angle_mode == AngleMode::Deg {
+                        arg = arg.to_degrees();
+                    }
+                    (mag, arg)
+                }
+                ComplexTransformMode::NormalizedPolar => {
+                    let mag = (c.re * c.re + c.im * c.im).sqrt();
+                    let arg_cycles = c.im.atan2(c.re) / (2.0 * std::f64::consts::PI);
+                    (mag, arg_cycles)
+                }
+            };
+            self.state.stack[len - 1] = Value::Real(a);
+            self.state.stack.push(Value::Real(b));
+            return Ok(());
+        }
+
+        self.require_stack_len(2)?;
+        let len = self.state.stack.len();
+        let a = Self::as_real_scalar(
+            self.state.stack.get(len - 2).expect("prechecked length"),
+            "complex conversion",
+        )?;
+        let b = Self::as_real_scalar(
+            self.state.stack.get(len - 1).expect("prechecked length"),
+            "complex conversion",
+        )?;
+        let (re, im) = match mode {
+            ComplexTransformMode::Cartesian => (a, b),
+            ComplexTransformMode::Polar => {
+                let theta = if angle_mode == AngleMode::Deg {
+                    b.to_radians()
+                } else {
+                    b
+                };
+                (a * theta.cos(), a * theta.sin())
+            }
+            ComplexTransformMode::NormalizedPolar => {
+                let theta = 2.0 * std::f64::consts::PI * b;
+                (a * theta.cos(), a * theta.sin())
+            }
+        };
+        self.state.stack.truncate(len - 2);
+        self.state.stack.push(Value::Complex(Complex { re, im }));
+        Ok(())
     }
 
     fn complex_sqrt(value: Complex) -> Complex {
@@ -4383,6 +4471,64 @@ mod tests {
         calc.push_value(Value::Real(5.0));
         assert_eq!(calc.imag_part(), Ok(()));
         assert_eq!(calc.state().stack, vec![Value::Real(0.0)]);
+    }
+
+    #[test]
+    fn cart_pol_npol_compose_and_decompose() {
+        let mut calc = Calculator::new();
+        calc.push_value(Value::Real(3.0));
+        calc.push_value(Value::Real(4.0));
+        assert_eq!(calc.cart(), Ok(()));
+        assert_eq!(
+            calc.state().stack,
+            vec![Value::Complex(Complex { re: 3.0, im: 4.0 })]
+        );
+
+        assert_eq!(calc.cart(), Ok(()));
+        assert_eq!(calc.state().stack, vec![Value::Real(3.0), Value::Real(4.0)]);
+
+        calc.clear_all();
+        calc.set_angle_mode(AngleMode::Deg);
+        calc.push_value(Value::Real(2.0));
+        calc.push_value(Value::Real(90.0));
+        assert_eq!(calc.pol(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Complex(c)] => {
+                assert_real_close(c.re, 0.0, 1e-10);
+                assert_real_close(c.im, 2.0, 1e-10);
+            }
+            other => panic!("expected complex output, got {other:?}"),
+        }
+
+        assert_eq!(calc.pol(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(mag), Value::Real(arg)] => {
+                assert_real_close(*mag, 2.0, 1e-10);
+                assert_real_close(*arg, 90.0, 1e-10);
+            }
+            other => panic!("expected mag/arg reals, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Real(2.0));
+        calc.push_value(Value::Real(0.25));
+        assert_eq!(calc.npol(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Complex(c)] => {
+                assert_real_close(c.re, 0.0, 1e-10);
+                assert_real_close(c.im, 2.0, 1e-10);
+            }
+            other => panic!("expected complex output, got {other:?}"),
+        }
+
+        assert_eq!(calc.npol(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(mag), Value::Real(cycles)] => {
+                assert_real_close(*mag, 2.0, 1e-10);
+                assert_real_close(*cycles, 0.25, 1e-10);
+            }
+            other => panic!("expected mag/cycles reals, got {other:?}"),
+        }
     }
 
     #[test]
