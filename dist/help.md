@@ -59,7 +59,7 @@ Stack labels:
 - `mat x^y`: integer matrix power (push matrix, then integer exponent, then press `MatPow`)
 - `QR`: QR decomposition; replaces top matrix with `Q` and pushes `R`
 - `LU`: LU decomposition with partial pivoting; replaces top matrix with `P` and pushes `L`, then `U` (so `P*A = L*U`)
-- `SVD`: singular value decomposition for real-valued matrices; replaces top matrix with `U` and pushes `S`, then `Vt`
+- `SVD`: singular value decomposition (supports complex matrices); replaces top matrix with `U` and pushes `S`, then `Vt`
 - `EVD`: eigendecomposition; replaces top matrix with `V` and pushes `D`. If exact diagonalization is unavailable, returns Schur form (`Q`, `T`) with a warning.
 - `Preset`: convenience template
 - `Preset I(n)`: fill Matrix Entry with an identity matrix template of size `n`

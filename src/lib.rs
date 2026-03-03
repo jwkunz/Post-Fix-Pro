@@ -2019,36 +2019,8 @@ impl Calculator {
         Ok((Self::dmatrix_to_matrix(&q), Self::dmatrix_to_matrix(&r)))
     }
 
-    fn matrix_to_real_dmatrix(matrix: &Matrix, operation: &str) -> Result<DMatrix<f64>, CalcError> {
-        let mut data = Vec::with_capacity(matrix.data.len());
-        for value in &matrix.data {
-            if value.im.abs() > 1e-12 {
-                return Err(CalcError::TypeMismatch(format!(
-                    "{operation} currently supports real-valued matrices only"
-                )));
-            }
-            data.push(value.re);
-        }
-        Ok(DMatrix::from_row_slice(matrix.rows, matrix.cols, &data))
-    }
-
-    fn real_dmatrix_to_matrix(matrix: &DMatrix<f64>) -> Matrix {
-        let rows = matrix.nrows();
-        let cols = matrix.ncols();
-        let mut data = Vec::with_capacity(rows * cols);
-        for row in 0..rows {
-            for col in 0..cols {
-                data.push(Complex {
-                    re: matrix[(row, col)],
-                    im: 0.0,
-                });
-            }
-        }
-        Matrix { rows, cols, data }
-    }
-
     fn matrix_svd(matrix: &Matrix) -> Result<(Matrix, Matrix, Matrix), CalcError> {
-        let a = Self::matrix_to_real_dmatrix(matrix, "SVD")?;
+        let a = Self::matrix_to_dmatrix(matrix);
         let m = a.nrows();
         let n = a.ncols();
         let k = m.min(n);
@@ -2061,15 +2033,15 @@ impl Calculator {
             .v_t
             .ok_or_else(|| CalcError::SingularMatrix("SVD failed to produce Vt".to_string()))?;
 
-        let mut s = DMatrix::<f64>::zeros(m, n);
+        let mut s = DMatrix::<Complex64>::zeros(m, n);
         for i in 0..k {
-            s[(i, i)] = svd.singular_values[i];
+            s[(i, i)] = Complex64::new(svd.singular_values[i], 0.0);
         }
 
         Ok((
-            Self::real_dmatrix_to_matrix(&u),
-            Self::real_dmatrix_to_matrix(&s),
-            Self::real_dmatrix_to_matrix(&vt),
+            Self::dmatrix_to_matrix(&u),
+            Self::dmatrix_to_matrix(&s),
+            Self::dmatrix_to_matrix(&vt),
         ))
     }
 
@@ -3252,6 +3224,42 @@ mod tests {
                 let us = matrix_mul_real(u, s);
                 let reconstructed = matrix_mul_real(&us, vt);
                 assert_matrix_close(&reconstructed, &original, 1e-8);
+            }
+            other => panic!("expected U, S and Vt on stack, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Matrix(
+            Matrix::new(
+                2,
+                2,
+                vec![
+                    Complex { re: 1.0, im: 2.0 },
+                    Complex { re: 0.0, im: -1.0 },
+                    Complex { re: 3.0, im: 0.5 },
+                    Complex { re: -2.0, im: 0.0 },
+                ],
+            )
+            .expect("valid matrix"),
+        ));
+
+        assert_eq!(calc.svd(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(u), Value::Matrix(s), Value::Matrix(vt)] => {
+                let us = Calculator::matrix_mul(u, s).expect("u*s");
+                let reconstructed = Calculator::matrix_mul(&us, vt).expect("(u*s)*vt");
+                let expected = Matrix::new(
+                    2,
+                    2,
+                    vec![
+                        Complex { re: 1.0, im: 2.0 },
+                        Complex { re: 0.0, im: -1.0 },
+                        Complex { re: 3.0, im: 0.5 },
+                        Complex { re: -2.0, im: 0.0 },
+                    ],
+                )
+                .expect("valid matrix");
+                assert_matrix_close(&reconstructed, &expected, 1e-8);
             }
             other => panic!("expected U, S and Vt on stack, got {other:?}"),
         }

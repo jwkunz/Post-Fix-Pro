@@ -1667,6 +1667,17 @@ mod tests {
             }
             other => panic!("expected three matrices from svd, got {other:?}"),
         }
+
+        api.clear_all();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(1.0, 2.0), c(0.0, -1.0), c(3.0, 0.5), c(-2.0, 0.0)],
+        });
+
+        let complex_response = api.svd();
+        assert!(complex_response.ok);
+        assert_eq!(complex_response.state.stack.len(), 3);
     }
 
     #[test]
