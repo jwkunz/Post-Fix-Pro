@@ -138,6 +138,7 @@ Example:
 
 ### Statistics
 
+- Works on either: top vector matrix (`Nx1` or `1xN`) or a scalar-only stack (treated as one set).
 - `ran#`: pseudo-random number in `[0, 1)`
 - `mean`: arithmetic mean of a real vector (`Nx1` or `1xN`)
 - `mode`: most frequent value in a real vector

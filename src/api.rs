@@ -1793,6 +1793,18 @@ mod tests {
             min_response.state.stack,
             vec![ApiValue::Real { value: 1.0 }]
         );
+
+        api.clear_all();
+        api.push_real(1.0);
+        api.push_real(2.0);
+        api.push_real(5.0);
+
+        let scalar_mean_response = api.mean();
+        assert!(scalar_mean_response.ok);
+        assert_eq!(
+            scalar_mean_response.state.stack,
+            vec![ApiValue::Real { value: 8.0 / 3.0 }]
+        );
     }
 
     #[test]

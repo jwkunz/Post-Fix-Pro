@@ -1291,57 +1291,76 @@ impl Calculator {
     }
 
     pub fn mean(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mean(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "mean requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_mean, "mean")
     }
 
     pub fn mode(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mode(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "mode requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_mode, "mode")
     }
 
     pub fn variance(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_variance(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "variance requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_variance, "variance")
     }
 
     pub fn std_dev(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_std_dev(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "std_dev requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_std_dev, "std_dev")
     }
 
     pub fn max_value(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_max(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "max requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_max, "max")
     }
 
     pub fn min_value(&mut self) -> Result<(), CalcError> {
-        self.apply_unary_op(|value| match value {
-            Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_min(matrix)?)),
-            _ => Err(CalcError::TypeMismatch(
-                "min requires a vector matrix value".to_string(),
-            )),
-        })
+        self.apply_stat_op(Self::matrix_min, "min")
+    }
+
+    fn apply_stat_op(
+        &mut self,
+        op: fn(&Matrix) -> Result<f64, CalcError>,
+        label: &str,
+    ) -> Result<(), CalcError> {
+        self.require_stack_len(1)?;
+        let len = self.state.stack.len();
+
+        match self.state.stack.last() {
+            Some(Value::Matrix(matrix)) => {
+                let result = op(matrix)?;
+                self.state.stack[len - 1] = Value::Real(result);
+            }
+            Some(_) => {
+                let scalar_vector = Self::stack_real_scalars_as_vector(&self.state.stack, label)?;
+                let result = op(&scalar_vector)?;
+                self.state.stack.clear();
+                self.state.stack.push(Value::Real(result));
+            }
+            None => unreachable!("prechecked non-empty stack"),
+        }
+
+        Ok(())
+    }
+
+    fn stack_real_scalars_as_vector(stack: &[Value], label: &str) -> Result<Matrix, CalcError> {
+        let mut data = Vec::with_capacity(stack.len());
+        for value in stack {
+            match value {
+                Value::Real(v) => data.push(Complex { re: *v, im: 0.0 }),
+                Value::Complex(c) if c.im.abs() <= 1e-12 => {
+                    data.push(Complex { re: c.re, im: 0.0 })
+                }
+                Value::Complex(_) => {
+                    return Err(CalcError::TypeMismatch(format!(
+                        "{label} over scalar stack requires real-valued scalars"
+                    )));
+                }
+                Value::Matrix(_) => {
+                    return Err(CalcError::TypeMismatch(format!(
+                        "{label} requires a vector matrix or a scalar-only stack"
+                    )));
+                }
+            }
+        }
+
+        Matrix::new(1, data.len(), data)
     }
 
     fn require_stack_len(&self, needed: usize) -> Result<(), CalcError> {
@@ -3059,6 +3078,16 @@ mod tests {
         match calc.state().stack.as_slice() {
             [Value::Real(v)] => assert_real_close(*v, 1.0, 1e-12),
             other => panic!("expected real min value, got {other:?}"),
+        }
+
+        calc.clear_all();
+        calc.push_value(Value::Real(1.0));
+        calc.push_value(Value::Real(2.0));
+        calc.push_value(Value::Real(5.0));
+        assert_eq!(calc.mean(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Real(v)] => assert_real_close(*v, 8.0 / 3.0, 1e-12),
+            other => panic!("expected scalar-stack mean value, got {other:?}"),
         }
     }
 
