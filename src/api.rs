@@ -501,6 +501,11 @@ impl CalculatorApi {
         self.wrap(result)
     }
 
+    pub fn svd(&mut self) -> ApiResponse {
+        let result = self.calculator.svd();
+        self.wrap(result)
+    }
+
     pub fn mean(&mut self) -> ApiResponse {
         let result = self.calculator.mean();
         self.wrap(result)
@@ -1060,6 +1065,10 @@ mod wasm {
             serde_json::to_string(&self.inner.lu()).expect("response serialization should succeed")
         }
 
+        pub fn svd(&mut self) -> String {
+            serde_json::to_string(&self.inner.svd()).expect("response serialization should succeed")
+        }
+
         pub fn mean(&mut self) -> String {
             serde_json::to_string(&self.inner.mean())
                 .expect("response serialization should succeed")
@@ -1339,6 +1348,38 @@ mod tests {
         let lu_response = api.lu();
         assert!(lu_response.ok);
         assert_eq!(lu_response.state.stack.len(), 3);
+    }
+
+    #[test]
+    fn svd_work_via_api() {
+        let mut api = CalculatorApi::new();
+        api.push_matrix(MatrixInput {
+            rows: 2,
+            cols: 2,
+            data: vec![c(3.0, 0.0), c(1.0, 0.0), c(1.0, 0.0), c(3.0, 0.0)],
+        });
+
+        let response = api.svd();
+        assert!(response.ok);
+        assert_eq!(response.state.stack.len(), 3);
+        match response.state.stack.as_slice() {
+            [
+                ApiValue::Matrix {
+                    rows: ur, cols: uc, ..
+                },
+                ApiValue::Matrix {
+                    rows: sr, cols: sc, ..
+                },
+                ApiValue::Matrix {
+                    rows: vr, cols: vc, ..
+                },
+            ] => {
+                assert_eq!((*ur, *uc), (2, 2));
+                assert_eq!((*sr, *sc), (2, 2));
+                assert_eq!((*vr, *vc), (2, 2));
+            }
+            other => panic!("expected three matrices from svd, got {other:?}"),
+        }
     }
 
     #[test]

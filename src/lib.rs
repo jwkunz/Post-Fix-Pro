@@ -1131,6 +1131,25 @@ impl Calculator {
         Ok(())
     }
 
+    pub fn svd(&mut self) -> Result<(), CalcError> {
+        self.require_stack_len(1)?;
+        let len = self.state.stack.len();
+        let matrix = match self.state.stack.get(len - 1) {
+            Some(Value::Matrix(matrix)) => matrix.clone(),
+            _ => {
+                return Err(CalcError::TypeMismatch(
+                    "SVD requires a matrix value".to_string(),
+                ));
+            }
+        };
+
+        let (u, s, vt) = Self::matrix_svd(&matrix)?;
+        self.state.stack[len - 1] = Value::Matrix(u);
+        self.state.stack.push(Value::Matrix(s));
+        self.state.stack.push(Value::Matrix(vt));
+        Ok(())
+    }
+
     pub fn mean(&mut self) -> Result<(), CalcError> {
         self.apply_unary_op(|value| match value {
             Value::Matrix(matrix) => Ok(Value::Real(Self::matrix_mean(matrix)?)),
@@ -1757,6 +1776,60 @@ impl Calculator {
         Ok((Self::dmatrix_to_matrix(&q), Self::dmatrix_to_matrix(&r)))
     }
 
+    fn matrix_to_real_dmatrix(matrix: &Matrix, operation: &str) -> Result<DMatrix<f64>, CalcError> {
+        let mut data = Vec::with_capacity(matrix.data.len());
+        for value in &matrix.data {
+            if value.im.abs() > 1e-12 {
+                return Err(CalcError::TypeMismatch(format!(
+                    "{operation} currently supports real-valued matrices only"
+                )));
+            }
+            data.push(value.re);
+        }
+        Ok(DMatrix::from_row_slice(matrix.rows, matrix.cols, &data))
+    }
+
+    fn real_dmatrix_to_matrix(matrix: &DMatrix<f64>) -> Matrix {
+        let rows = matrix.nrows();
+        let cols = matrix.ncols();
+        let mut data = Vec::with_capacity(rows * cols);
+        for row in 0..rows {
+            for col in 0..cols {
+                data.push(Complex {
+                    re: matrix[(row, col)],
+                    im: 0.0,
+                });
+            }
+        }
+        Matrix { rows, cols, data }
+    }
+
+    fn matrix_svd(matrix: &Matrix) -> Result<(Matrix, Matrix, Matrix), CalcError> {
+        let a = Self::matrix_to_real_dmatrix(matrix, "SVD")?;
+        let m = a.nrows();
+        let n = a.ncols();
+        let k = m.min(n);
+
+        let svd = a.svd(true, true);
+        let u = svd
+            .u
+            .ok_or_else(|| CalcError::SingularMatrix("SVD failed to produce U".to_string()))?;
+        let vt = svd
+            .v_t
+            .ok_or_else(|| CalcError::SingularMatrix("SVD failed to produce Vt".to_string()))?;
+
+        let mut s = DMatrix::<f64>::zeros(m, n);
+        for i in 0..k {
+            s[(i, i)] = svd.singular_values[i];
+        }
+
+        Ok((
+            Self::real_dmatrix_to_matrix(&u),
+            Self::real_dmatrix_to_matrix(&s),
+            Self::real_dmatrix_to_matrix(&vt),
+        ))
+    }
+
     fn matrix_lu(matrix: &Matrix) -> Result<(Matrix, Matrix, Matrix), CalcError> {
         Self::require_square(matrix, "LU")?;
 
@@ -2175,6 +2248,21 @@ mod tests {
             assert_real_close(a.re, e.re, eps);
             assert_real_close(a.im, e.im, eps);
         }
+    }
+
+    fn matrix_mul_real(lhs: &Matrix, rhs: &Matrix) -> Matrix {
+        assert_eq!(lhs.cols, rhs.rows);
+        let mut out = vec![Complex { re: 0.0, im: 0.0 }; lhs.rows * rhs.cols];
+        for row in 0..lhs.rows {
+            for col in 0..rhs.cols {
+                let mut sum = 0.0;
+                for k in 0..lhs.cols {
+                    sum += lhs.data[row * lhs.cols + k].re * rhs.data[k * rhs.cols + col].re;
+                }
+                out[row * rhs.cols + col] = Complex { re: sum, im: 0.0 };
+            }
+        }
+        Matrix::new(lhs.rows, rhs.cols, out).expect("valid product")
     }
 
     #[test]
@@ -2709,6 +2797,23 @@ mod tests {
                 assert_real_close(pa22, lu22, 1e-10);
             }
             other => panic!("expected P, L and U on stack, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn svd_decompose_reconstructs_matrix() {
+        let mut calc = Calculator::new();
+        let original = matrix(2, 2, &[3.0, 1.0, 1.0, 3.0]);
+        calc.push_value(Value::Matrix(original.clone()));
+
+        assert_eq!(calc.svd(), Ok(()));
+        match calc.state().stack.as_slice() {
+            [Value::Matrix(u), Value::Matrix(s), Value::Matrix(vt)] => {
+                let us = matrix_mul_real(u, s);
+                let reconstructed = matrix_mul_real(&us, vt);
+                assert_matrix_close(&reconstructed, &original, 1e-8);
+            }
+            other => panic!("expected U, S and Vt on stack, got {other:?}"),
         }
     }
 
