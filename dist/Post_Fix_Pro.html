@@ -50,9 +50,124 @@
     .app {
       width: min(1180px, 100%);
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: 1fr;
       gap: 14px;
       align-items: start;
+    }
+
+    .primary-shell {
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .ops-shell {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .ops-logo {
+      display: grid;
+      place-items: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+      padding: 8px;
+      backdrop-filter: blur(2px);
+    }
+
+    .ops-logo .brand-logo {
+      width: min(280px, 90%);
+      max-height: 84px;
+    }
+
+    .ops-tabs {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+      padding: 8px;
+      backdrop-filter: blur(2px);
+    }
+
+    .tab-btn {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 10px;
+      background: var(--key-fn);
+      font-size: 12px;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 6px 4px;
+      touch-action: manipulation;
+    }
+
+    .tab-btn.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--glow);
+      filter: brightness(1.1);
+    }
+
+    .ops-popout {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+      padding: 12px;
+      backdrop-filter: blur(2px);
+      max-height: 56vh;
+      overflow: auto;
+      width: 100%;
+    }
+
+    .ops-popout.closed {
+      display: none;
+    }
+
+    .ops-popout-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ops-popout-title {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .ops-close {
+      min-height: auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+    }
+
+    .panel.ops-panel {
+      min-width: 0;
+      background: none;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .panel.ops-panel:not(.active) {
+      display: none;
     }
 
     .panel {
@@ -566,6 +681,17 @@
       transform: translateY(0);
     }
 
+    @media (max-width: 980px) {
+      body {
+        display: block;
+        padding: 10px;
+      }
+
+      .ops-shell {
+        gap: 8px;
+      }
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 10px;
@@ -575,9 +701,25 @@
         padding: 10px;
       }
 
+      .tab-btn {
+        min-height: 48px;
+        font-size: 11px;
+        letter-spacing: 0.02em;
+      }
+
+      .ops-tabs {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        padding: 6px;
+        gap: 6px;
+      }
+
+      .ops-popout {
+        max-height: 52vh;
+      }
+
       button {
-        min-height: 36px;
-        font-size: 14px;
+        min-height: 44px;
+        font-size: 15px;
       }
 
       .keys {
@@ -621,7 +763,8 @@
 
 <body>
   <main class="app">
-    <section class="panel stack-panel">
+    <div class="primary-shell">
+      <section class="panel stack-panel">
       <h2 class="stack-title">Stack</h2>
       <div class="stack-controls">
         <label for="stack-visible-count">Visible</label>
@@ -634,11 +777,7 @@
       </p>
     </section>
 
-    <section class="panel">
-      <div class="brand-hero">
-        <img class="brand-logo" src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
-        <p class="brand-subtitle">RPN Calculator</p>
-      </div>
+      <section class="panel">
       <div class="status-row">
         <strong>Post Fix Pro</strong>
         <div class="status-actions">
@@ -655,16 +794,6 @@
       <p class="keypad-guide">RPN flow: build number -> <code>Enter</code> -> apply operation.</p>
 
       <div class="keys" id="keypad">
-        <button class="fn" data-action="toggle-angle">deg_rad</button>
-        <button class="fn" data-action="pick-top-index">pick</button>
-        <button class="danger" data-action="clear-entry">clear_entry</button>
-        <button class="danger" data-action="clear-all">clear_all</button>
-
-        <button class="fn" data-action="drop">drop</button>
-        <button class="fn" data-action="dup">dup</button>
-        <button class="fn" data-action="swap">swap</button>
-        <button class="fn" data-action="rot">rot</button>
-
         <button class="fn" data-action="toggle-sign">+-</button>
         <button class="op" data-action="div">div</button>
         <button class="op" data-action="mul">mul</button>
@@ -687,215 +816,253 @@
         <button data-action="decimal">.</button>
         <button class="fn" data-action="insert-exp">EXP</button>
         <button class="fn" data-action="undo">undo</button>
-      </div>
-    </section>
 
-    <section class="panel">
-      <h3 class="panel-title">Matrix Builder</h3>
-      <div class="matrix-grid">
-        <label class="matrix-a-only">
-          Matrix Entry
-          <textarea id="matrix-a-input" placeholder="1 2&#10;3 4"></textarea>
-        </label>
-      </div>
-      <div class="matrix-size-controls">
-        <div class="matrix-size-group">
-          <strong>Size</strong>
-          <div class="matrix-size-row">
-            <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix Entry rows">
-            <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix Entry columns">
-            <button class="fn" id="apply-a-size-btn" type="button">apply_size</button>
-          </div>
-        </div>
-      </div>
-      <div class="matrix-actions">
-        <button class="fn" id="push-a-btn">push_matrix</button>
-        <button class="fn" id="preset-a-btn">preset_matrix</button>
-        <div class="identity">
-          <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
-          <button class="fn" id="push-identity-btn">push_identity</button>
-        </div>
-        <button class="fn" id="import-csv-btn">import_csv</button>
-        <button class="fn" id="export-csv-btn">export_csv</button>
-        <button class="fn" id="hstack-btn">hstack</button>
-        <button class="fn" id="vstack-btn">vstack</button>
-        <button class="fn" id="hravel-btn">hravel</button>
-        <button class="fn" id="vravel-btn">vravel</button>
-        <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
+        <button class="fn" data-action="toggle-angle">deg_rad</button>
+        <button class="fn" data-action="pick-top-index">pick</button>
+        <button class="danger" data-action="clear-entry">clear_entry</button>
+        <button class="danger" data-action="clear-all">clear_all</button>
 
+        <button class="fn" data-action="drop">drop</button>
+        <button class="fn" data-action="dup">dup</button>
+        <button class="fn" data-action="swap">swap</button>
+        <button class="fn" data-action="rot">rot</button>
       </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Vector Operators</h3>
-      <div class="matrix-actions" data-advanced-actions>
-        <button class="fn" data-action="dot">dot</button>
-        <button class="fn" data-action="cross">cross</button>
-        <button class="fn" data-action="diag">diag</button>
-        <button class="fn" data-action="tpltz">toep</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Matrix Operators</h3>
-      <div class="matrix-actions" data-advanced-actions>
-        <button class="op" id="solve-btn">solve_ax_b</button>
-        <button class="op" id="solve-lstsq-btn">solve_lstsq</button>
-        <button class="fn" data-action="det">determinant</button>
-        <button class="fn" data-action="trace">trace</button>
-        <button class="fn" data-action="transpose">transpose</button>
-        <button class="fn" data-action="inverse">inverse</button>
-        <button class="fn" data-action="hadamard-mul">hadamard_mul</button>
-        <button class="fn" data-action="hadamard-div">hadamard_div</button>
-        <button class="fn" data-action="norm-p">norm_p</button>
-        <button class="fn" data-action="mat-exp">mat_exp</button>
-        <button class="fn" data-action="hermitian">hermitian</button>
-        <button class="fn" data-action="mat-pow">mat_pow</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Matrix Decompositions</h3>
-      <div class="matrix-actions" data-advanced-actions>
-        <button class="fn" data-action="qr">qr</button>
-        <button class="fn" data-action="lu">lu</button>
-        <button class="fn" data-action="svd">svd</button>
-        <button class="fn" data-action="evd">evd</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Scalar</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="neg">neg</button>
-        <button class="fn" data-action="inv">inv</button>
-        <button class="fn" data-action="square">square</button>
-        <button class="fn" data-action="sqrt">sqrt</button>
-        <button class="fn" data-action="pow">pow</button>
-        <button class="fn" data-action="root">root</button>
-        <button class="fn" data-action="exp10">exp10</button>
-        <button class="fn" data-action="log10">log10</button>
-        <button class="fn" data-action="exp">exp</button>
-        <button class="fn" data-action="ln">ln</button>
-        <button class="fn" data-action="exp2">exp2</button>
-        <button class="fn" data-action="log2">log2</button>
-        <button class="fn" data-action="log-y-x">log_y_x</button>
-        <button class="fn" data-action="signum">signum</button>
-        <button class="fn" data-action="percent">percent</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Trigonometry</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp_toggle</button>
-        <button class="fn" data-action="to-rad">to_rad</button>
-        <button class="fn" data-action="to-deg">to_deg</button>
-        <button class="fn" data-action="atan2">atan2</button>
-        <button class="fn" data-action="sin" data-hyp="sinh">sin</button>
-        <button class="fn" data-action="asin" data-hyp="asinh">asin</button>
-        <button class="fn" data-action="cos" data-hyp="cosh">cos</button>
-        <button class="fn" data-action="acos" data-hyp="acosh">acos</button>
-        <button class="fn" data-action="tan" data-hyp="tanh">tan</button>
-        <button class="fn" data-action="atan" data-hyp="atanh">atan</button>
-        <button class="fn" data-action="sec" data-hyp="sech">sec</button>
-        <button class="fn" data-action="asec" data-hyp="asech">asec</button>
-        <button class="fn" data-action="csc" data-hyp="csch">csc</button>
-        <button class="fn" data-action="acsc" data-hyp="acsch">acsc</button>
-        <button class="fn" data-action="cot" data-hyp="coth">cot</button>
-        <button class="fn" data-action="acot" data-hyp="acoth">acot</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Complex</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="abs">abs</button>
-        <button class="fn" data-action="abs-sq">abs_sq</button>
-        <button class="fn" data-action="arg">arg</button>
-        <button class="fn" data-action="conjugate">conjugate</button>
-        <button class="fn" data-action="real-part">real_part</button>
-        <button class="fn" data-action="imag-part">imag_part</button>
-        <button class="fn" data-action="cart">cart</button>
-        <button class="fn" data-action="pol">pol</button>
-        <button class="fn" data-action="npol">npol</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Special</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="factorial">factorial</button>
-        <button class="fn" data-action="ncr">ncr</button>
-        <button class="fn" data-action="npr">npr</button>
-        <button class="fn" data-action="modulo">modulo</button>
-        <button class="fn" data-action="gcd">gcd</button>
-        <button class="fn" data-action="lcm">lcm</button>
-        <button class="fn" data-action="gamma">gamma</button>
-        <button class="fn" data-action="erf">erf</button>
-        <button class="fn" data-action="erfc">erfc</button>
-        <button class="fn" data-action="bessel">bessel</button>
-        <button class="fn" data-action="mbessel">mbessel</button>
-        <button class="fn" data-action="sinc">sinc</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Statistics</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="mean">mean</button>
-        <button class="fn" data-action="mode">mode</button>
-        <button class="fn" data-action="median">median</button>
-        <button class="fn" data-action="quart">quart</button>
-        <button class="fn" data-action="std-dev-p">std_dev_p</button>
-        <button class="fn" data-action="std-dev-s">std_dev_s</button>
-        <button class="fn" data-action="variance">variance</button>
-        <button class="fn" data-action="max">max</button>
-        <button class="fn" data-action="min">min</button>
-        <button class="fn" data-action="rand">rand_num</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Rounding</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="round">round</button>
-        <button class="fn" data-action="floor">floor</button>
-        <button class="fn" data-action="ceil">ceil</button>
-        <button class="fn" data-action="dec-part">dec_part</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Constants</h3>
-      <div class="science-actions" data-advanced-actions>
-        <button class="fn" data-action="pi">π</button>
-        <button class="fn" data-action="e">e</button>
-        <button class="fn" data-action="const-euler-gamma">γ</button>
-        <button class="fn" data-action="const-psi">ψ</button>
-        <button class="fn" data-action="const-c">c</button>
-        <button class="fn" data-action="const-mol">mol</button>
-        <button class="fn" data-action="const-k">k</button>
-        <button class="fn" data-action="const-hbar">ħ</button>
-        <button class="fn" data-action="const-epsilon0">ε₀</button>
-        <button class="fn" data-action="const-mu0">μ₀</button>
-        <button class="fn" data-action="const-G">G</button>
-        <button class="fn" data-action="const-qe">qₑ</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h3 class="panel-title">Memory</h3>
-      <section class="memory-tools">
-        <h3>Memory A-Z</h3>
-        <div class="memory-row">
-          <input id="memory-register-input" type="text" maxlength="1" value="A" aria-label="Memory register">
-          <button class="fn" id="memory-store-btn">memory_store</button>
-          <button class="fn" id="memory-recall-btn">memory_recall</button>
-          <button class="danger" id="memory-clear-btn">memory_clear</button>
-        </div>
       </section>
-    </section>
+    </div>
+
+    <aside class="ops-shell" id="ops-shell">
+      <nav class="ops-tabs" aria-label="Operation categories">
+        <button class="tab-btn active" type="button" data-tab-target="matrix-builder" aria-label="Matrix Builder" title="Matrix Builder">MAT</button>
+        <button class="tab-btn" type="button" data-tab-target="vector-ops" aria-label="Vector Operators" title="Vector Operators">VEC</button>
+        <button class="tab-btn" type="button" data-tab-target="matrix-ops" aria-label="Matrix Operators" title="Matrix Operators">MOP</button>
+        <button class="tab-btn" type="button" data-tab-target="decomp" aria-label="Matrix Decompositions" title="Matrix Decompositions">DEC</button>
+        <button class="tab-btn" type="button" data-tab-target="scalar" aria-label="Scalar" title="Scalar">SCL</button>
+        <button class="tab-btn" type="button" data-tab-target="trig" aria-label="Trigonometry" title="Trigonometry">TRG</button>
+        <button class="tab-btn" type="button" data-tab-target="complex" aria-label="Complex" title="Complex">CPX</button>
+        <button class="tab-btn" type="button" data-tab-target="special" aria-label="Special" title="Special">SPC</button>
+        <button class="tab-btn" type="button" data-tab-target="stats" aria-label="Statistics" title="Statistics">STA</button>
+        <button class="tab-btn" type="button" data-tab-target="rounding" aria-label="Rounding" title="Rounding">RND</button>
+        <button class="tab-btn" type="button" data-tab-target="constants" aria-label="Constants" title="Constants">CST</button>
+        <button class="tab-btn" type="button" data-tab-target="memory" aria-label="Memory" title="Memory">MEM</button>
+      </nav>
+
+      <div class="ops-logo">
+        <img class="brand-logo" src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
+      </div>
+
+      <div class="ops-popout closed" id="ops-popout">
+        <header class="ops-popout-header">
+          <h3 class="ops-popout-title" id="ops-popout-title">Matrix Builder</h3>
+          <button class="danger ops-close" type="button" id="ops-popout-close">close</button>
+        </header>
+
+        <section class="panel ops-panel active" data-tab-panel="matrix-builder" data-tab-label="Matrix Builder">
+          <h3 class="panel-title">Matrix Builder</h3>
+          <div class="matrix-grid">
+            <label class="matrix-a-only">
+              Matrix Entry
+              <textarea id="matrix-a-input" placeholder="1 2&#10;3 4"></textarea>
+            </label>
+          </div>
+          <div class="matrix-size-controls">
+            <div class="matrix-size-group">
+              <strong>Size</strong>
+              <div class="matrix-size-row">
+                <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix Entry rows">
+                <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix Entry columns">
+                <button class="fn" id="apply-a-size-btn" type="button">apply_size</button>
+              </div>
+            </div>
+          </div>
+          <div class="matrix-actions">
+            <button class="fn" id="push-a-btn">push_matrix</button>
+            <button class="fn" id="preset-a-btn">preset_matrix</button>
+            <div class="identity">
+              <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
+              <button class="fn" id="push-identity-btn">push_identity</button>
+            </div>
+            <button class="fn" id="import-csv-btn">import_csv</button>
+            <button class="fn" id="export-csv-btn">export_csv</button>
+            <button class="fn" id="hstack-btn">hstack</button>
+            <button class="fn" id="vstack-btn">vstack</button>
+            <button class="fn" id="hravel-btn">hravel</button>
+            <button class="fn" id="vravel-btn">vravel</button>
+            <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="vector-ops" data-tab-label="Vector Operators">
+          <h3 class="panel-title">Vector Operators</h3>
+          <div class="matrix-actions" data-advanced-actions>
+            <button class="fn" data-action="dot">dot</button>
+            <button class="fn" data-action="cross">cross</button>
+            <button class="fn" data-action="diag">diag</button>
+            <button class="fn" data-action="tpltz">toep</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="matrix-ops" data-tab-label="Matrix Operators">
+          <h3 class="panel-title">Matrix Operators</h3>
+          <div class="matrix-actions" data-advanced-actions>
+            <button class="op" id="solve-btn">solve_ax_b</button>
+            <button class="op" id="solve-lstsq-btn">solve_lstsq</button>
+            <button class="fn" data-action="det">determinant</button>
+            <button class="fn" data-action="trace">trace</button>
+            <button class="fn" data-action="transpose">transpose</button>
+            <button class="fn" data-action="inverse">inverse</button>
+            <button class="fn" data-action="hadamard-mul">hadamard_mul</button>
+            <button class="fn" data-action="hadamard-div">hadamard_div</button>
+            <button class="fn" data-action="norm-p">norm_p</button>
+            <button class="fn" data-action="mat-exp">mat_exp</button>
+            <button class="fn" data-action="hermitian">hermitian</button>
+            <button class="fn" data-action="mat-pow">mat_pow</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="decomp" data-tab-label="Matrix Decompositions">
+          <h3 class="panel-title">Matrix Decompositions</h3>
+          <div class="matrix-actions" data-advanced-actions>
+            <button class="fn" data-action="qr">qr</button>
+            <button class="fn" data-action="lu">lu</button>
+            <button class="fn" data-action="svd">svd</button>
+            <button class="fn" data-action="evd">evd</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="scalar" data-tab-label="Scalar">
+          <h3 class="panel-title">Scalar</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="neg">neg</button>
+            <button class="fn" data-action="inv">inv</button>
+            <button class="fn" data-action="square">square</button>
+            <button class="fn" data-action="sqrt">sqrt</button>
+            <button class="fn" data-action="pow">pow</button>
+            <button class="fn" data-action="root">root</button>
+            <button class="fn" data-action="exp10">exp10</button>
+            <button class="fn" data-action="log10">log10</button>
+            <button class="fn" data-action="exp">exp</button>
+            <button class="fn" data-action="ln">ln</button>
+            <button class="fn" data-action="exp2">exp2</button>
+            <button class="fn" data-action="log2">log2</button>
+            <button class="fn" data-action="log-y-x">log_y_x</button>
+            <button class="fn" data-action="signum">signum</button>
+            <button class="fn" data-action="percent">percent</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="trig" data-tab-label="Trigonometry">
+          <h3 class="panel-title">Trigonometry</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp_toggle</button>
+            <button class="fn" data-action="to-rad">to_rad</button>
+            <button class="fn" data-action="to-deg">to_deg</button>
+            <button class="fn" data-action="atan2">atan2</button>
+            <button class="fn" data-action="sin" data-hyp="sinh">sin</button>
+            <button class="fn" data-action="asin" data-hyp="asinh">asin</button>
+            <button class="fn" data-action="cos" data-hyp="cosh">cos</button>
+            <button class="fn" data-action="acos" data-hyp="acosh">acos</button>
+            <button class="fn" data-action="tan" data-hyp="tanh">tan</button>
+            <button class="fn" data-action="atan" data-hyp="atanh">atan</button>
+            <button class="fn" data-action="sec" data-hyp="sech">sec</button>
+            <button class="fn" data-action="asec" data-hyp="asech">asec</button>
+            <button class="fn" data-action="csc" data-hyp="csch">csc</button>
+            <button class="fn" data-action="acsc" data-hyp="acsch">acsc</button>
+            <button class="fn" data-action="cot" data-hyp="coth">cot</button>
+            <button class="fn" data-action="acot" data-hyp="acoth">acot</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="complex" data-tab-label="Complex">
+          <h3 class="panel-title">Complex</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="abs">abs</button>
+            <button class="fn" data-action="abs-sq">abs_sq</button>
+            <button class="fn" data-action="arg">arg</button>
+            <button class="fn" data-action="conjugate">conjugate</button>
+            <button class="fn" data-action="real-part">real_part</button>
+            <button class="fn" data-action="imag-part">imag_part</button>
+            <button class="fn" data-action="cart">cart</button>
+            <button class="fn" data-action="pol">pol</button>
+            <button class="fn" data-action="npol">npol</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="special" data-tab-label="Special">
+          <h3 class="panel-title">Special</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="factorial">factorial</button>
+            <button class="fn" data-action="ncr">ncr</button>
+            <button class="fn" data-action="npr">npr</button>
+            <button class="fn" data-action="modulo">modulo</button>
+            <button class="fn" data-action="gcd">gcd</button>
+            <button class="fn" data-action="lcm">lcm</button>
+            <button class="fn" data-action="gamma">gamma</button>
+            <button class="fn" data-action="erf">erf</button>
+            <button class="fn" data-action="erfc">erfc</button>
+            <button class="fn" data-action="bessel">bessel</button>
+            <button class="fn" data-action="mbessel">mbessel</button>
+            <button class="fn" data-action="sinc">sinc</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="stats" data-tab-label="Statistics">
+          <h3 class="panel-title">Statistics</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="mean">mean</button>
+            <button class="fn" data-action="mode">mode</button>
+            <button class="fn" data-action="median">median</button>
+            <button class="fn" data-action="quart">quart</button>
+            <button class="fn" data-action="std-dev-p">std_dev_p</button>
+            <button class="fn" data-action="std-dev-s">std_dev_s</button>
+            <button class="fn" data-action="variance">variance</button>
+            <button class="fn" data-action="max">max</button>
+            <button class="fn" data-action="min">min</button>
+            <button class="fn" data-action="rand">rand_num</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="rounding" data-tab-label="Rounding">
+          <h3 class="panel-title">Rounding</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="round">round</button>
+            <button class="fn" data-action="floor">floor</button>
+            <button class="fn" data-action="ceil">ceil</button>
+            <button class="fn" data-action="dec-part">dec_part</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="constants" data-tab-label="Constants">
+          <h3 class="panel-title">Constants</h3>
+          <div class="science-actions" data-advanced-actions>
+            <button class="fn" data-action="pi">π</button>
+            <button class="fn" data-action="e">e</button>
+            <button class="fn" data-action="const-euler-gamma">γ</button>
+            <button class="fn" data-action="const-psi">ψ</button>
+            <button class="fn" data-action="const-c">c</button>
+            <button class="fn" data-action="const-mol">mol</button>
+            <button class="fn" data-action="const-k">k</button>
+            <button class="fn" data-action="const-hbar">ħ</button>
+            <button class="fn" data-action="const-epsilon0">ε₀</button>
+            <button class="fn" data-action="const-mu0">μ₀</button>
+            <button class="fn" data-action="const-G">G</button>
+            <button class="fn" data-action="const-qe">qₑ</button>
+          </div>
+        </section>
+
+        <section class="panel ops-panel" data-tab-panel="memory" data-tab-label="Memory">
+          <h3 class="panel-title">Memory</h3>
+          <section class="memory-tools">
+            <h3>Memory A-Z</h3>
+            <div class="memory-row">
+              <input id="memory-register-input" type="text" maxlength="1" value="A" aria-label="Memory register">
+              <button class="fn" id="memory-store-btn">memory_store</button>
+              <button class="fn" id="memory-recall-btn">memory_recall</button>
+              <button class="danger" id="memory-clear-btn">memory_clear</button>
+            </div>
+          </section>
+        </section>
+      </div>
+    </aside>
   </main>
   <div class="help-modal" id="help-modal" aria-hidden="true">
     <div class="help-dialog" role="dialog" aria-modal="true" aria-label="Calculator help">
@@ -948,6 +1115,11 @@
     const helpModal = document.getElementById("help-modal");
     const helpFrame = document.getElementById("help-frame");
     const buttonTooltip = document.getElementById("button-tooltip");
+    const opsPopout = document.getElementById("ops-popout");
+    const opsPopoutTitle = document.getElementById("ops-popout-title");
+    const opsPopoutCloseBtn = document.getElementById("ops-popout-close");
+    const opsTabButtons = Array.from(document.querySelectorAll(".tab-btn[data-tab-target]"));
+    const opsPanels = Array.from(document.querySelectorAll(".ops-panel[data-tab-panel]"));
 
     let wasmCalc = null;
     let entryBuffer = "";
@@ -967,6 +1139,7 @@
     let tooltipMap = new Map();
     let tooltipTimer = null;
     let tooltipTarget = null;
+    let activeOpsTab = null;
     const tooltipDelayMs = 2000;
     const tooltipActionKeyMap = {
       "toggle-angle": "deg_rad",
@@ -1141,6 +1314,58 @@
           positionTooltip(tooltipTarget);
         }
       });
+    }
+
+    function closeOpsPopout() {
+      opsPopout.classList.add("closed");
+      opsTabButtons.forEach((button) => {
+        button.classList.remove("active");
+        button.setAttribute("aria-selected", "false");
+      });
+      activeOpsTab = null;
+    }
+
+    function openOpsTab(tabId, options = {}) {
+      const { toggle = false } = options;
+      const panel = opsPanels.find((candidate) => candidate.dataset.tabPanel === tabId);
+      if (!panel) return;
+      const isOpen = !opsPopout.classList.contains("closed");
+      if (toggle && isOpen && activeOpsTab === tabId) {
+        closeOpsPopout();
+        return;
+      }
+
+      activeOpsTab = tabId;
+      opsPanels.forEach((candidate) => {
+        candidate.classList.toggle("active", candidate.dataset.tabPanel === tabId);
+      });
+      opsTabButtons.forEach((button) => {
+        const selected = button.dataset.tabTarget === tabId;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-selected", selected ? "true" : "false");
+      });
+      opsPopoutTitle.textContent = panel.dataset.tabLabel || "Operations";
+      opsPopout.classList.remove("closed");
+    }
+
+    function setupOpsTabs() {
+      opsTabButtons.forEach((button) => {
+        button.setAttribute("aria-selected", "false");
+        button.addEventListener("click", () => {
+          openOpsTab(button.dataset.tabTarget, { toggle: true });
+        });
+      });
+      opsPopoutCloseBtn.addEventListener("click", () => {
+        closeOpsPopout();
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !helpModal.classList.contains("open")) {
+          closeOpsPopout();
+        }
+      });
+
+      closeOpsPopout();
     }
 
     function setError(message) {
@@ -2205,6 +2430,7 @@
       }
     }
 
+    setupOpsTabs();
     installButtonTooltips();
     boot();
   </script>
