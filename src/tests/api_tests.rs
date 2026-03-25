@@ -1,4 +1,4 @@
-    use super::{ApiAngleMode, ApiValue, CalculatorApi, ComplexInput, MatrixInput};
+    use super::{ApiAngleMode, ApiDisplayMode, ApiValue, CalculatorApi, ComplexInput, MatrixInput};
 
     fn c(re: f64, im: f64) -> ComplexInput {
         ComplexInput { re, im }
@@ -219,6 +219,19 @@
 
         assert_eq!(snapshot.entry_buffer, "90");
         assert_eq!(snapshot.angle_mode, ApiAngleMode::Deg);
+    }
+
+    #[test]
+    fn display_preferences_can_be_updated_via_api() {
+        let mut api = CalculatorApi::new();
+
+        let display_response = api.set_display_mode(ApiDisplayMode::Sci);
+        assert!(display_response.ok);
+        assert_eq!(display_response.state.display_mode, ApiDisplayMode::Sci);
+
+        let precision_response = api.set_precision(9);
+        assert!(precision_response.ok);
+        assert_eq!(precision_response.state.precision, 9);
     }
 
     #[test]

@@ -8,6 +8,16 @@ impl Calculator {
         self.state.angle_mode = mode;
     }
 
+    /// Executes the `set_display_mode` operation.
+    pub fn set_display_mode(&mut self, mode: DisplayMode) {
+        self.state.display_mode = mode;
+    }
+
+    /// Executes the `set_precision` operation.
+    pub fn set_precision(&mut self, precision: u8) {
+        self.state.precision = precision.min(12);
+    }
+
     /// Executes the `push_pi` operation.
     pub fn push_pi(&mut self) {
         self.state.stack.push(Value::Real(std::f64::consts::PI));

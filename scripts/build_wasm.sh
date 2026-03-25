@@ -16,6 +16,7 @@ mkdir -p dist/pkg
 cp -r pkg/. dist/pkg/
 cp Post_Fix_Pro.html dist/Post_Fix_Pro.html
 cp Post_Fix_Pro.png dist/Post_Fix_Pro.png
+cp VERSION dist/VERSION
 cp help.md dist/help.md
 rm -f dist/index.html
 
@@ -44,6 +45,7 @@ echo "WASM build complete:"
 echo "  - pkg/ bindings generated (no-modules target)"
 echo "  - dist/Post_Fix_Pro.html refreshed"
 echo "  - dist/Post_Fix_Pro.png copied"
+echo "  - dist/VERSION copied"
 echo "  - dist/help.md copied"
 echo "  - dist/pkg/ copied"
 echo "  - dist/wasm_base64.js generated"

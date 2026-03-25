@@ -206,6 +206,25 @@ impl CalculatorApi {
         self.success_with_undo(before)
     }
 
+    /// Executes the `set_display_mode` operation.
+    pub fn set_display_mode(&mut self, mode: ApiDisplayMode) -> ApiResponse {
+        let before = self.calculator.state().clone();
+        let mode = match mode {
+            ApiDisplayMode::Fix => DisplayMode::Fix,
+            ApiDisplayMode::Sci => DisplayMode::Sci,
+            ApiDisplayMode::Eng => DisplayMode::Eng,
+        };
+        self.calculator.set_display_mode(mode);
+        self.success_with_undo(before)
+    }
+
+    /// Executes the `set_precision` operation.
+    pub fn set_precision(&mut self, precision: u8) -> ApiResponse {
+        let before = self.calculator.state().clone();
+        self.calculator.set_precision(precision);
+        self.success_with_undo(before)
+    }
+
     /// Executes the `enter` operation.
     pub fn enter(&mut self) -> ApiResponse {
         let before = self.calculator.state().clone();
@@ -1219,7 +1238,7 @@ fn to_api_error(error: CalcError) -> ApiError {
 mod wasm {
     use wasm_bindgen::prelude::wasm_bindgen;
 
-    use super::{ApiAngleMode, CalculatorApi, ComplexInput, MatrixInput};
+    use super::{ApiAngleMode, ApiDisplayMode, CalculatorApi, ComplexInput, MatrixInput};
 
     #[wasm_bindgen]
     pub struct WasmCalculator {
@@ -1743,6 +1762,30 @@ mod wasm {
         /// Executes the `set_angle_mode_rad` operation.
         pub fn set_angle_mode_rad(&mut self) -> String {
             serde_json::to_string(&self.inner.set_angle_mode(ApiAngleMode::Rad))
+                .expect("response serialization should succeed")
+        }
+
+        /// Executes the `set_display_mode_fix` operation.
+        pub fn set_display_mode_fix(&mut self) -> String {
+            serde_json::to_string(&self.inner.set_display_mode(ApiDisplayMode::Fix))
+                .expect("response serialization should succeed")
+        }
+
+        /// Executes the `set_display_mode_sci` operation.
+        pub fn set_display_mode_sci(&mut self) -> String {
+            serde_json::to_string(&self.inner.set_display_mode(ApiDisplayMode::Sci))
+                .expect("response serialization should succeed")
+        }
+
+        /// Executes the `set_display_mode_eng` operation.
+        pub fn set_display_mode_eng(&mut self) -> String {
+            serde_json::to_string(&self.inner.set_display_mode(ApiDisplayMode::Eng))
+                .expect("response serialization should succeed")
+        }
+
+        /// Executes the `set_precision` operation.
+        pub fn set_precision(&mut self, precision: u8) -> String {
+            serde_json::to_string(&self.inner.set_precision(precision))
                 .expect("response serialization should succeed")
         }
 

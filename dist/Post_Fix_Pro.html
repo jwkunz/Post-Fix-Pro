@@ -7,267 +7,58 @@
   <title>Post Fix Pro</title>
   <style>
     :root {
-      --bg-0: #0a0d14;
-      --bg-1: #121826;
-      --bg-2: #182133;
-      --panel: rgba(22, 29, 44, 0.92);
-      --panel-2: rgba(17, 22, 35, 0.92);
-      --ink: #e6edf8;
-      --muted: #8ea0bf;
-      --accent: #63b6ff;
-      --accent-2: #5ce3b6;
-      --danger: #ff7f88;
-      --key: #1b2438;
-      --key-op: #1d3553;
-      --key-fn: #1a3640;
-      --key-danger: #432734;
-      --border: #2b3a57;
-      --glow: rgba(99, 182, 255, 0.22);
+      --bg-0: #09101b;
+      --bg-1: #121b2a;
+      --bg-2: #1c293d;
+      --panel: rgba(18, 26, 40, 0.92);
+      --panel-2: rgba(12, 18, 30, 0.96);
+      --panel-3: rgba(25, 35, 53, 0.92);
+      --ink: #e9f0fb;
+      --muted: #95a6c3;
+      --accent: #72c6ff;
+      --accent-2: #74e0b4;
+      --danger: #ff8e96;
+      --border: #304561;
+      --key: #1a2638;
+      --key-op: #203957;
+      --key-fn: #18343f;
+      --key-danger: #4a2a35;
+      --glow: rgba(114, 198, 255, 0.22);
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    .hidden {
-      display: none !important;
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
     }
 
     body {
-      margin: 0;
-      min-height: 100vh;
       font-family: "Trebuchet MS", "Gill Sans", "Avenir Next", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at 12% 0%, #1b2a44 0%, transparent 40%),
-        radial-gradient(circle at 88% 100%, #173041 0%, transparent 45%),
-        linear-gradient(165deg, var(--bg-0) 0%, var(--bg-1) 55%, var(--bg-2) 100%);
-      display: grid;
-      place-items: center;
+        radial-gradient(circle at 10% 0%, rgba(59, 106, 153, 0.32) 0%, transparent 34%),
+        radial-gradient(circle at 92% 100%, rgba(69, 139, 123, 0.24) 0%, transparent 32%),
+        linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 52%, var(--bg-2) 100%);
       padding: 18px;
     }
 
-    .app {
-      width: min(1180px, 100%);
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      align-items: start;
-    }
-
-    .primary-shell {
-      min-width: 0;
-      display: grid;
-      gap: 14px;
-    }
-
-    .ops-shell {
-      min-width: 0;
-      display: grid;
-      gap: 10px;
-      align-items: start;
-    }
-
-    .ops-logo {
-      display: grid;
-      place-items: center;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
-      padding: 8px;
-      backdrop-filter: blur(2px);
-    }
-
-    .ops-logo .brand-logo {
-      width: min(280px, 90%);
-      max-height: 84px;
-    }
-
-    .ops-tabs {
-      display: grid;
-      gap: 6px;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
-      padding: 8px;
-      backdrop-filter: blur(2px);
-    }
-
-    .tab-btn {
-      width: 100%;
-      min-height: 46px;
-      border-radius: 10px;
-      background: var(--key-fn);
-      font-size: 12px;
-      line-height: 1.1;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      padding: 6px 4px;
-      touch-action: manipulation;
-    }
-
-    .tab-btn.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--glow);
-      filter: brightness(1.1);
-    }
-
-    .ops-popout {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
-      padding: 12px;
-      backdrop-filter: blur(2px);
-      max-height: 56vh;
-      overflow: auto;
-      width: 100%;
-    }
-
-    .ops-popout.closed {
-      display: none;
-    }
-
-    .ops-popout-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .ops-popout-title {
-      margin: 0;
-      font-size: 13px;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .ops-close {
-      min-height: auto;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      letter-spacing: 0.03em;
-    }
-
-    .panel.ops-panel {
-      min-width: 0;
-      background: none;
-      border: 0;
-      box-shadow: none;
-      padding: 0;
-      border-radius: 0;
-    }
-
-    .panel.ops-panel:not(.active) {
-      display: none;
-    }
-
-    .panel {
-      min-width: 0;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
-      padding: 14px;
-      backdrop-filter: blur(2px);
-    }
-
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .brand-hero {
-      display: grid;
-      justify-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .brand-logo {
-      width: min(380px, 88%);
-      max-height: 120px;
-      object-fit: contain;
-      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
-    }
-
-    .brand-subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .display {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: var(--panel-2);
-      min-height: 80px;
-      display: grid;
-      gap: 8px;
-      margin-bottom: 12px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-    }
-
-    .entry {
-      font-size: clamp(22px, 5.4vw, 28px);
-      color: #f5fbff;
-      line-height: 1.2;
-      word-break: break-all;
-      min-height: 32px;
-      text-shadow: 0 0 10px rgba(99, 182, 255, 0.25);
-      cursor: text;
-    }
-
-    .entry-edit {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 8px;
-      color: #f5fbff;
-      background: #0f1525;
-      font-size: clamp(22px, 5.4vw, 28px);
-      line-height: 1.2;
-      font-family: "Courier New", monospace;
-    }
-
-    .error {
-      min-height: 20px;
-      font-size: 13px;
-      color: var(--danger);
-    }
-
-    .error.ok {
-      color: transparent;
-    }
-
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
     }
 
     button {
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       background: var(--key);
       color: var(--ink);
-      font-size: clamp(13px, 2.5vw, 16px);
-      min-height: clamp(38px, 9vw, 46px);
       cursor: pointer;
       transition: transform 90ms ease, filter 120ms ease, box-shadow 120ms ease;
     }
@@ -289,57 +80,389 @@
       background: var(--key-fn);
     }
 
-    button.fn.active {
-      border-color: #4d9f88;
-      box-shadow: 0 0 0 1px rgba(92, 227, 182, 0.35);
-      filter: brightness(1.08);
+    button.fn.active,
+    .ribbon-tab.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--glow);
     }
 
     button.danger {
       background: var(--key-danger);
     }
 
-    button.wide {
-      grid-column: span 2;
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--ink);
+      background: var(--panel-2);
+      padding: 10px 12px;
     }
 
-    button.tall-2 {
-      grid-row: span 2;
+    textarea,
+    .entry-edit,
+    .stack,
+    .status-chip,
+    .pref-note {
+      font-family: "Courier New", monospace;
     }
 
-    .stack-title {
-      margin: 0 0 8px;
-      font-size: 16px;
-      color: var(--muted);
+    .hidden {
+      display: none !important;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .top-shell {
+      overflow: hidden;
+    }
+
+    .top-shell-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 30px);
       letter-spacing: 0.03em;
+    }
+
+    .brand-copy p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
 
-    .stack-controls {
+    .status-cluster {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 8px;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 13px;
     }
 
-    .stack-controls input {
-      width: 72px;
+    .status-chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(114, 198, 255, 0.13);
+      color: #d5efff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .ribbon-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 20px 18px;
+    }
+
+    .ribbon-tab {
+      min-height: 44px;
+      padding: 0 16px;
+      font-size: 12px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(18, 32, 51, 0.95);
+    }
+
+    .ribbon-dropdown {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 16px 20px 20px;
+      background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(18, 28, 44, 0.98));
+    }
+
+    .ribbon-dropdown.closed {
+      display: none;
+    }
+
+    .ribbon-panel {
+      display: none;
+    }
+
+    .ribbon-panel.active {
+      display: block;
+    }
+
+    .ribbon-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .ribbon-panel-title {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .ribbon-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .ribbon-grid.compact {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .ribbon-grid button {
+      min-height: 44px;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+
+    .pref-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .pref-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(12, 18, 30, 0.72);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .pref-card strong {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .pref-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .memory-inline {
+      display: grid;
+      grid-template-columns: 100px repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .banner-panel {
+      min-height: 132px;
+      padding: 14px 18px;
+      display: grid;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(31, 46, 69, 0.95), rgba(18, 25, 37, 0.95)),
+        var(--panel);
+    }
+
+    .banner-slot {
+      min-height: 86px;
+      border: 1px dashed rgba(114, 198, 255, 0.35);
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(114, 198, 255, 0.1), rgba(116, 224, 180, 0.07)),
+        rgba(8, 12, 20, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      overflow: hidden;
+      padding: 10px 18px;
+    }
+
+    .banner-slot img {
+      height: min(74px, 100%);
+      width: auto;
+      max-width: min(180px, 30vw);
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
+    }
+
+    .content-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .calculator-panel {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .display-shell {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel-2);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .display-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .display-status {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .display-badge {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: rgba(114, 198, 255, 0.12);
+    }
+
+    .entry {
+      min-height: 38px;
+      font-size: clamp(26px, 5vw, 34px);
+      color: #f8fbff;
+      line-height: 1.25;
+      word-break: break-all;
+      cursor: text;
+      text-shadow: 0 0 14px rgba(114, 198, 255, 0.18);
+    }
+
+    .entry-edit {
+      min-height: 54px;
+      font-size: clamp(24px, 4vw, 30px);
+    }
+
+    .error {
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--danger);
+    }
+
+    .error.ok {
+      color: transparent;
+    }
+
+    .keypad-guide {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .keys button {
+      min-height: 58px;
+      font-size: clamp(15px, 2.1vw, 18px);
+      padding: 10px;
+    }
+
+    .keys .bottom-wide {
+      grid-column: 1 / -1;
+      min-height: 54px;
+    }
+
+    .stack-panel {
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .stack-brand {
+      margin-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 14px;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .stack-brand img {
+      width: min(180px, 100%);
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+    }
+
+    .stack-brand span {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .stack-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stack-title {
+      margin: 0;
+      font-size: 18px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
     .stack-summary {
-      min-height: 18px;
-      margin-top: 0;
-      margin-bottom: 8px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .stack {
+      list-style: none;
       margin: 0;
       padding: 0;
-      list-style: none;
       display: grid;
-      gap: 6px;
+      gap: 8px;
     }
 
     .stack li {
@@ -348,28 +471,22 @@
       gap: 10px;
       align-items: start;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-family: "Courier New", monospace;
+      border-radius: 12px;
       background: var(--panel-2);
-      font-size: 15px;
+      padding: 10px 12px;
       overflow-wrap: anywhere;
-    }
-
-    .stack .idx {
-      color: var(--muted);
-      min-width: 28px;
+      font-size: 14px;
     }
 
     .stack li.top {
       border-color: #1f8f5e;
-      background: linear-gradient(180deg, rgba(28, 95, 66, 0.35) 0%, rgba(20, 70, 50, 0.35) 100%);
+      background: linear-gradient(180deg, rgba(25, 88, 64, 0.44), rgba(17, 54, 41, 0.44));
       box-shadow: inset 0 0 0 1px rgba(127, 231, 173, 0.2);
     }
 
-    .stack li.top .idx {
-      color: #7fe7ad;
-      font-weight: 700;
+    .stack .idx {
+      color: var(--muted);
+      min-width: 30px;
     }
 
     .stack-role {
@@ -378,282 +495,108 @@
       padding: 1px 6px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(99, 182, 255, 0.18);
-      color: #cff2ff;
+      background: rgba(114, 198, 255, 0.18);
+      color: #d4f3ff;
       font-size: 11px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      vertical-align: middle;
-    }
-
-    .hint {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .matrix-tools {
-      margin-top: 14px;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .matrix-tools h3 {
-      margin: 0;
-      font-size: 14px;
-      color: var(--muted);
-      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
-    .matrix-grid {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .matrix-a-only {
-      grid-column: 1 / -1;
-    }
-
-    .matrix-grid label {
-      display: grid;
-      gap: 4px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .matrix-grid textarea {
-      width: 100%;
-      min-height: 74px;
-      resize: vertical;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: "Courier New", monospace;
-      font-size: 12px;
-      padding: 8px;
-      color: var(--ink);
-      background: var(--panel-2);
-    }
-
-    .matrix-size-controls {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr;
-    }
-
-    .matrix-size-group {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--panel-2);
-      padding: 8px;
-      display: grid;
-      gap: 6px;
-    }
-
-    .matrix-size-group strong {
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .matrix-size-row {
-      display: grid;
-      gap: 6px;
-      grid-template-columns: 1fr 1fr auto;
-      align-items: center;
-    }
-
-    .matrix-size-row input {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px;
-      color: var(--ink);
-      background: #0f1525;
-      font-family: "Courier New", monospace;
-      font-size: 12px;
-    }
-
-    .matrix-actions {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .matrix-presets {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .identity {
-      display: grid;
-      grid-template-columns: 84px 1fr;
-      gap: 8px;
-      align-items: center;
-      grid-column: span 2;
-    }
-
-    .matrix-presets input,
-    .identity input,
-    .complex-tools input {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      color: var(--ink);
-      background: var(--panel-2);
-      font-family: "Courier New", monospace;
-      font-size: 13px;
-    }
-
-    .complex-tools {
-      margin-top: 14px;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .science-actions {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .panel-title {
-      margin: 0 0 8px;
-      font-size: 14px;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .complex-tools h3 {
-      margin: 0;
-      font-size: 14px;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .complex-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 8px;
-    }
-
-    .complex-mode-row {
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .complex-mode-row select {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      color: var(--ink);
-      background: var(--panel-2);
-      font-family: "Courier New", monospace;
-      font-size: 13px;
-    }
-
-    .memory-tools {
-      margin-top: 14px;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .memory-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .keypad-guide {
-      margin: 0 0 10px;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: 0.01em;
-    }
-
-    .status-chip {
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 2px 10px;
-      color: #cff2ff;
-      background: rgba(99, 182, 255, 0.15);
-      font-family: "Courier New", monospace;
-      font-size: 12px;
-      letter-spacing: 0.06em;
-    }
-
-    .status-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .help-btn {
-      min-height: auto;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      letter-spacing: 0.03em;
-    }
-
-    .help-modal {
+    .modal {
       position: fixed;
       inset: 0;
-      background: rgba(7, 10, 18, 0.75);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 18px;
+      background: rgba(4, 8, 15, 0.78);
       z-index: 100;
     }
 
-    .help-modal.open {
+    .modal.open {
       display: flex;
     }
 
-    .help-dialog {
-      width: min(980px, 100%);
-      height: min(82vh, 760px);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--panel);
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+    .modal-dialog {
+      width: min(1100px, 100%);
+      max-height: min(88vh, 900px);
+      overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr;
-      overflow: hidden;
     }
 
-    .help-header {
+    .modal-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       color: var(--muted);
       font-size: 13px;
-      letter-spacing: 0.03em;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-body {
+      overflow: auto;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1.5fr 1fr;
+    }
+
+    .matrix-grid label,
+    .field-stack label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .matrix-grid textarea {
+      min-height: 260px;
+      resize: vertical;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .matrix-size-row,
+    .identity-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .identity-row {
+      grid-template-columns: 1fr auto;
+    }
+
+    .matrix-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .matrix-actions button {
+      min-height: 44px;
+      font-size: 13px;
+      padding: 8px 10px;
     }
 
     .help-frame {
       width: 100%;
-      height: 100%;
+      height: min(72vh, 760px);
       border: 0;
       background: #0b1020;
     }
@@ -665,7 +608,7 @@
       padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(8, 12, 20, 0.95);
+      background: rgba(8, 12, 20, 0.96);
       color: var(--ink);
       font-size: 12px;
       line-height: 1.35;
@@ -681,81 +624,71 @@
       transform: translateY(0);
     }
 
-    @media (max-width: 980px) {
-      body {
-        display: block;
-        padding: 10px;
+    @media (max-width: 1180px) {
+      .content-shell {
+        grid-template-columns: 1fr;
       }
 
-      .ops-shell {
-        gap: 8px;
+      .stack-panel {
+        position: static;
+      }
+
+      .ribbon-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .pref-grid {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 760px) {
       body {
         padding: 10px;
       }
 
-      .panel {
-        padding: 10px;
+      .top-shell-head {
+        padding: 14px;
+        align-items: start;
+        flex-direction: column;
       }
 
-      .tab-btn {
-        min-height: 48px;
-        font-size: 11px;
-        letter-spacing: 0.02em;
+      .ribbon-bar,
+      .ribbon-dropdown,
+      .banner-panel,
+      .calculator-panel,
+      .stack-panel,
+      .modal-body {
+        padding-left: 14px;
+        padding-right: 14px;
       }
 
-      .ops-tabs {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        padding: 6px;
-        gap: 6px;
+      .ribbon-grid,
+      .matrix-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .ops-popout {
-        max-height: 52vh;
+      .ribbon-grid.compact,
+      .memory-inline {
+        grid-template-columns: 1fr;
       }
 
-      button {
-        min-height: 44px;
-        font-size: 15px;
-      }
-
-      .keys {
-        gap: 6px;
+      .banner-slot {
+        flex-direction: column;
+        text-align: center;
       }
 
       .matrix-grid {
         grid-template-columns: 1fr;
       }
 
-      .matrix-size-controls {
+      .matrix-size-row,
+      .identity-row {
         grid-template-columns: 1fr;
       }
 
-      .matrix-actions {
-        grid-template-columns: 1fr;
-      }
-
-      .science-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .matrix-presets {
-        grid-template-columns: 1fr;
-      }
-
-      .identity {
-        grid-column: span 1;
-      }
-
-      .complex-row {
-        grid-template-columns: 1fr;
-      }
-
-      .memory-row {
-        grid-template-columns: 1fr;
+      .keys button {
+        min-height: 52px;
       }
     }
   </style>
@@ -763,175 +696,40 @@
 
 <body>
   <main class="app">
-    <div class="primary-shell">
-      <section class="panel stack-panel">
-      <h2 class="stack-title">Stack</h2>
-      <div class="stack-controls">
-        <label for="stack-visible-count">Visible</label>
-        <input id="stack-visible-count" type="number" min="1" max="64" step="1" value="4" aria-label="Visible stack frames">
-      </div>
-      <p id="stack-summary" class="hint stack-summary"></p>
-      <ol id="stack-list" class="stack"></ol>
-      <p class="hint" id="runtime-hint">
-        Loading WASM runtime...
-      </p>
-    </section>
-
-      <section class="panel">
-      <div class="status-row">
-        <strong>Post Fix Pro</strong>
-        <div class="status-actions">
-          <button class="fn help-btn" id="help-open-btn" type="button">help</button>
+    <header class="panel top-shell">
+      <div class="top-shell-head">
+        <div class="brand-copy">
+          <h1>Post Fix Pro</h1>
+          <p>RPN Calculator</p>
+        </div>
+        <div class="status-cluster">
+          <span id="runtime-hint" class="status-chip">Loading WASM runtime...</span>
           <span id="angle-indicator" class="status-chip">RAD</span>
+          <span id="display-indicator" class="status-chip">FIX 6</span>
         </div>
       </div>
-      <div class="display">
-        <div id="entry-display" class="entry">0</div>
-        <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false"
-          autocomplete="off" aria-label="Scalar entry edit">
-        <div id="error-display" class="error ok"></div>
-      </div>
-      <p class="keypad-guide">RPN flow: build number -> <code>Enter</code> -> apply operation.</p>
 
-      <div class="keys" id="keypad">
-        <button class="fn" data-action="toggle-sign">+-</button>
-        <button class="op" data-action="div">div</button>
-        <button class="op" data-action="mul">mul</button>
-        <button class="op" data-action="sub">sub</button>
-
-        <button data-digit="7">7</button>
-        <button data-digit="8">8</button>
-        <button data-digit="9">9</button>
-        <button class="op" data-action="add">add</button>
-
-        <button data-digit="4">4</button>
-        <button data-digit="5">5</button>
-        <button data-digit="6">6</button>
-        <button class="op tall-2" data-action="enter">enter</button>
-
-        <button data-digit="1">1</button>
-        <button data-digit="2">2</button>
-        <button data-digit="3">3</button>
-        <button data-digit="0">0</button>
-        <button data-action="decimal">.</button>
-        <button class="fn" data-action="insert-exp">EXP</button>
-        <button class="fn" data-action="undo">undo</button>
-
-        <button class="fn" data-action="toggle-angle">deg_rad</button>
-        <button class="fn" data-action="pick-top-index">pick</button>
-        <button class="danger" data-action="clear-entry">clear_entry</button>
-        <button class="danger" data-action="clear-all">clear_all</button>
-
-        <button class="fn" data-action="drop">drop</button>
-        <button class="fn" data-action="dup">dup</button>
-        <button class="fn" data-action="swap">swap</button>
-        <button class="fn" data-action="rot">rot</button>
-      </div>
-      </section>
-    </div>
-
-    <aside class="ops-shell" id="ops-shell">
-      <nav class="ops-tabs" aria-label="Operation categories">
-        <button class="tab-btn active" type="button" data-tab-target="matrix-builder" aria-label="Matrix Builder" title="Matrix Builder">MAT</button>
-        <button class="tab-btn" type="button" data-tab-target="vector-ops" aria-label="Vector Operators" title="Vector Operators">VEC</button>
-        <button class="tab-btn" type="button" data-tab-target="matrix-ops" aria-label="Matrix Operators" title="Matrix Operators">MOP</button>
-        <button class="tab-btn" type="button" data-tab-target="decomp" aria-label="Matrix Decompositions" title="Matrix Decompositions">DEC</button>
-        <button class="tab-btn" type="button" data-tab-target="scalar" aria-label="Scalar" title="Scalar">SCL</button>
-        <button class="tab-btn" type="button" data-tab-target="trig" aria-label="Trigonometry" title="Trigonometry">TRG</button>
-        <button class="tab-btn" type="button" data-tab-target="complex" aria-label="Complex" title="Complex">CPX</button>
-        <button class="tab-btn" type="button" data-tab-target="special" aria-label="Special" title="Special">SPC</button>
-        <button class="tab-btn" type="button" data-tab-target="stats" aria-label="Statistics" title="Statistics">STA</button>
-        <button class="tab-btn" type="button" data-tab-target="rounding" aria-label="Rounding" title="Rounding">RND</button>
-        <button class="tab-btn" type="button" data-tab-target="constants" aria-label="Constants" title="Constants">CST</button>
-        <button class="tab-btn" type="button" data-tab-target="memory" aria-label="Memory" title="Memory">MEM</button>
+      <nav class="ribbon-bar" aria-label="Ribbon menu">
+        <button class="ribbon-tab" type="button" data-ribbon-target="analytic">Analytic</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="trigonometry">Trigonometry</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="special">Special</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="statistics">Statistics</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="round">Round</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="constants">Constants</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="complex">Complex</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="vector">Vector</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="matrix">Matrix</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="memory">Memory</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="preferences">Preferences</button>
+        <button class="ribbon-tab" type="button" id="help-ribbon-btn">Help</button>
       </nav>
 
-      <div class="ops-logo">
-        <img class="brand-logo" src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
-      </div>
-
-      <div class="ops-popout closed" id="ops-popout">
-        <header class="ops-popout-header">
-          <h3 class="ops-popout-title" id="ops-popout-title">Matrix Builder</h3>
-          <button class="danger ops-close" type="button" id="ops-popout-close">close</button>
-        </header>
-
-        <section class="panel ops-panel active" data-tab-panel="matrix-builder" data-tab-label="Matrix Builder">
-          <h3 class="panel-title">Matrix Builder</h3>
-          <div class="matrix-grid">
-            <label class="matrix-a-only">
-              Matrix Entry
-              <textarea id="matrix-a-input" placeholder="1 2&#10;3 4"></textarea>
-            </label>
+      <div class="ribbon-dropdown closed" id="ribbon-dropdown">
+        <section class="ribbon-panel" data-ribbon-panel="analytic">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Analytic</h2>
           </div>
-          <div class="matrix-size-controls">
-            <div class="matrix-size-group">
-              <strong>Size</strong>
-              <div class="matrix-size-row">
-                <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix Entry rows">
-                <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix Entry columns">
-                <button class="fn" id="apply-a-size-btn" type="button">apply_size</button>
-              </div>
-            </div>
-          </div>
-          <div class="matrix-actions">
-            <button class="fn" id="push-a-btn">push_matrix</button>
-            <button class="fn" id="preset-a-btn">preset_matrix</button>
-            <div class="identity">
-              <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
-              <button class="fn" id="push-identity-btn">push_identity</button>
-            </div>
-            <button class="fn" id="import-csv-btn">import_csv</button>
-            <button class="fn" id="export-csv-btn">export_csv</button>
-            <button class="fn" id="hstack-btn">hstack</button>
-            <button class="fn" id="vstack-btn">vstack</button>
-            <button class="fn" id="hravel-btn">hravel</button>
-            <button class="fn" id="vravel-btn">vravel</button>
-            <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
-          </div>
-        </section>
-
-        <section class="panel ops-panel" data-tab-panel="vector-ops" data-tab-label="Vector Operators">
-          <h3 class="panel-title">Vector Operators</h3>
-          <div class="matrix-actions" data-advanced-actions>
-            <button class="fn" data-action="dot">dot</button>
-            <button class="fn" data-action="cross">cross</button>
-            <button class="fn" data-action="diag">diag</button>
-            <button class="fn" data-action="tpltz">toep</button>
-          </div>
-        </section>
-
-        <section class="panel ops-panel" data-tab-panel="matrix-ops" data-tab-label="Matrix Operators">
-          <h3 class="panel-title">Matrix Operators</h3>
-          <div class="matrix-actions" data-advanced-actions>
-            <button class="op" id="solve-btn">solve_ax_b</button>
-            <button class="op" id="solve-lstsq-btn">solve_lstsq</button>
-            <button class="fn" data-action="det">determinant</button>
-            <button class="fn" data-action="trace">trace</button>
-            <button class="fn" data-action="transpose">transpose</button>
-            <button class="fn" data-action="inverse">inverse</button>
-            <button class="fn" data-action="hadamard-mul">hadamard_mul</button>
-            <button class="fn" data-action="hadamard-div">hadamard_div</button>
-            <button class="fn" data-action="norm-p">norm_p</button>
-            <button class="fn" data-action="mat-exp">mat_exp</button>
-            <button class="fn" data-action="hermitian">hermitian</button>
-            <button class="fn" data-action="mat-pow">mat_pow</button>
-          </div>
-        </section>
-
-        <section class="panel ops-panel" data-tab-panel="decomp" data-tab-label="Matrix Decompositions">
-          <h3 class="panel-title">Matrix Decompositions</h3>
-          <div class="matrix-actions" data-advanced-actions>
-            <button class="fn" data-action="qr">qr</button>
-            <button class="fn" data-action="lu">lu</button>
-            <button class="fn" data-action="svd">svd</button>
-            <button class="fn" data-action="evd">evd</button>
-          </div>
-        </section>
-
-        <section class="panel ops-panel" data-tab-panel="scalar" data-tab-label="Scalar">
-          <h3 class="panel-title">Scalar</h3>
-          <div class="science-actions" data-advanced-actions>
+          <div class="ribbon-grid" data-advanced-actions>
             <button class="fn" data-action="neg">neg</button>
             <button class="fn" data-action="inv">inv</button>
             <button class="fn" data-action="square">square</button>
@@ -950,9 +748,12 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="trig" data-tab-label="Trigonometry">
-          <h3 class="panel-title">Trigonometry</h3>
-          <div class="science-actions" data-advanced-actions>
+        <section class="ribbon-panel" data-ribbon-panel="trigonometry">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Trigonometry</h2>
+          </div>
+          <div class="ribbon-grid" data-advanced-actions>
+            <button class="fn" data-action="toggle-angle">deg_rad</button>
             <button class="fn" data-action="hyp-toggle" id="hyp-toggle-btn">hyp_toggle</button>
             <button class="fn" data-action="to-rad">to_rad</button>
             <button class="fn" data-action="to-deg">to_deg</button>
@@ -972,24 +773,11 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="complex" data-tab-label="Complex">
-          <h3 class="panel-title">Complex</h3>
-          <div class="science-actions" data-advanced-actions>
-            <button class="fn" data-action="abs">abs</button>
-            <button class="fn" data-action="abs-sq">abs_sq</button>
-            <button class="fn" data-action="arg">arg</button>
-            <button class="fn" data-action="conjugate">conjugate</button>
-            <button class="fn" data-action="real-part">real_part</button>
-            <button class="fn" data-action="imag-part">imag_part</button>
-            <button class="fn" data-action="cart">cart</button>
-            <button class="fn" data-action="pol">pol</button>
-            <button class="fn" data-action="npol">npol</button>
+        <section class="ribbon-panel" data-ribbon-panel="special">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Special</h2>
           </div>
-        </section>
-
-        <section class="panel ops-panel" data-tab-panel="special" data-tab-label="Special">
-          <h3 class="panel-title">Special</h3>
-          <div class="science-actions" data-advanced-actions>
+          <div class="ribbon-grid" data-advanced-actions>
             <button class="fn" data-action="factorial">factorial</button>
             <button class="fn" data-action="ncr">ncr</button>
             <button class="fn" data-action="npr">npr</button>
@@ -1005,9 +793,11 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="stats" data-tab-label="Statistics">
-          <h3 class="panel-title">Statistics</h3>
-          <div class="science-actions" data-advanced-actions>
+        <section class="ribbon-panel" data-ribbon-panel="statistics">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Statistics</h2>
+          </div>
+          <div class="ribbon-grid compact" data-advanced-actions>
             <button class="fn" data-action="mean">mean</button>
             <button class="fn" data-action="mode">mode</button>
             <button class="fn" data-action="median">median</button>
@@ -1021,9 +811,11 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="rounding" data-tab-label="Rounding">
-          <h3 class="panel-title">Rounding</h3>
-          <div class="science-actions" data-advanced-actions>
+        <section class="ribbon-panel" data-ribbon-panel="round">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Round</h2>
+          </div>
+          <div class="ribbon-grid compact" data-advanced-actions>
             <button class="fn" data-action="round">round</button>
             <button class="fn" data-action="floor">floor</button>
             <button class="fn" data-action="ceil">ceil</button>
@@ -1031,9 +823,11 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="constants" data-tab-label="Constants">
-          <h3 class="panel-title">Constants</h3>
-          <div class="science-actions" data-advanced-actions>
+        <section class="ribbon-panel" data-ribbon-panel="constants">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Constants</h2>
+          </div>
+          <div class="ribbon-grid" data-advanced-actions>
             <button class="fn" data-action="pi">π</button>
             <button class="fn" data-action="e">e</button>
             <button class="fn" data-action="const-euler-gamma">γ</button>
@@ -1049,30 +843,237 @@
           </div>
         </section>
 
-        <section class="panel ops-panel" data-tab-panel="memory" data-tab-label="Memory">
-          <h3 class="panel-title">Memory</h3>
-          <section class="memory-tools">
-            <h3>Memory A-Z</h3>
-            <div class="memory-row">
-              <input id="memory-register-input" type="text" maxlength="1" value="A" aria-label="Memory register">
-              <button class="fn" id="memory-store-btn">memory_store</button>
-              <button class="fn" id="memory-recall-btn">memory_recall</button>
-              <button class="danger" id="memory-clear-btn">memory_clear</button>
+        <section class="ribbon-panel" data-ribbon-panel="complex">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Complex</h2>
+          </div>
+          <div class="ribbon-grid compact" data-advanced-actions>
+            <button class="fn" data-action="abs">abs</button>
+            <button class="fn" data-action="abs-sq">abs_sq</button>
+            <button class="fn" data-action="arg">arg</button>
+            <button class="fn" data-action="conjugate">conjugate</button>
+            <button class="fn" data-action="real-part">real_part</button>
+            <button class="fn" data-action="imag-part">imag_part</button>
+            <button class="fn" data-action="cart">cart</button>
+            <button class="fn" data-action="pol">pol</button>
+            <button class="fn" data-action="npol">npol</button>
+          </div>
+        </section>
+
+        <section class="ribbon-panel" data-ribbon-panel="vector">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Vector</h2>
+          </div>
+          <div class="ribbon-grid compact" data-advanced-actions>
+            <button class="fn" data-action="dot">dot</button>
+            <button class="fn" data-action="cross">cross</button>
+            <button class="fn" data-action="diag">diag</button>
+            <button class="fn" data-action="tpltz">toep</button>
+          </div>
+        </section>
+
+        <section class="ribbon-panel" data-ribbon-panel="matrix">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Matrix</h2>
+            <button class="fn" type="button" id="matrix-builder-open-btn">Matrix Builder</button>
+          </div>
+          <div class="ribbon-grid" data-advanced-actions>
+            <button class="fn" data-action="stack-vec">stack_vec</button>
+            <button class="op" id="solve-btn" type="button">solve_ax_b</button>
+            <button class="op" id="solve-lstsq-btn" type="button">solve_lstsq</button>
+            <button class="fn" data-action="det">determinant</button>
+            <button class="fn" data-action="trace">trace</button>
+            <button class="fn" data-action="transpose">transpose</button>
+            <button class="fn" data-action="inverse">inverse</button>
+            <button class="fn" data-action="hadamard-mul">hadamard_mul</button>
+            <button class="fn" data-action="hadamard-div">hadamard_div</button>
+            <button class="fn" data-action="norm-p">norm_p</button>
+            <button class="fn" data-action="mat-exp">mat_exp</button>
+            <button class="fn" data-action="hermitian">hermitian</button>
+            <button class="fn" data-action="mat-pow">mat_pow</button>
+            <button class="fn" data-action="qr">qr</button>
+            <button class="fn" data-action="lu">lu</button>
+            <button class="fn" data-action="svd">svd</button>
+            <button class="fn" data-action="evd">evd</button>
+          </div>
+        </section>
+
+        <section class="ribbon-panel" data-ribbon-panel="memory">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Memory</h2>
+          </div>
+          <div class="memory-inline">
+            <input id="memory-register-input" type="text" maxlength="1" value="A" aria-label="Memory register">
+            <button class="fn" id="memory-store-btn" type="button">memory_store</button>
+            <button class="fn" id="memory-recall-btn" type="button">memory_recall</button>
+            <button class="danger" id="memory-clear-btn" type="button">memory_clear</button>
+          </div>
+        </section>
+
+        <section class="ribbon-panel" data-ribbon-panel="preferences">
+          <div class="ribbon-panel-head">
+            <h2 class="ribbon-panel-title">Preferences</h2>
+          </div>
+          <div class="pref-grid">
+            <div class="pref-card">
+              <strong>Stack</strong>
+              <label for="stack-visible-count">Visible stack frames</label>
+              <input id="stack-visible-count" type="number" min="1" max="64" step="1" value="4" aria-label="Visible stack frames">
+              <span class="pref-note">Controls how many stack frames stay visible in the sidebar.</span>
             </div>
-          </section>
+            <div class="pref-card">
+              <strong>Display Mode</strong>
+              <label for="display-mode-select">Numeric mode</label>
+              <select id="display-mode-select" aria-label="Display mode">
+                <option value="fix">Fix</option>
+                <option value="sci">Sci</option>
+                <option value="eng">Eng</option>
+              </select>
+              <span class="pref-note">Changes the number formatting used throughout the UI.</span>
+            </div>
+            <div class="pref-card">
+              <strong>Precision</strong>
+              <label for="precision-input">Digits</label>
+              <input id="precision-input" type="number" min="0" max="12" step="1" value="6" aria-label="Precision">
+              <span class="pref-note">Applies to `Fix`, `Sci`, and `Eng` formatting.</span>
+            </div>
+          </div>
         </section>
       </div>
-    </aside>
+    </header>
+
+    <section class="content-shell">
+      <section class="panel calculator-panel">
+        <div class="display-shell">
+          <div class="display-meta">
+            <span>RPN entry panel</span>
+            <div class="display-status">
+              <span class="display-badge" id="display-mode-badge">FIX</span>
+              <span class="display-badge" id="precision-badge">P6</span>
+            </div>
+          </div>
+          <div id="entry-display" class="entry">0</div>
+          <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false"
+            autocomplete="off" aria-label="Scalar entry edit">
+          <div id="error-display" class="error ok"></div>
+        </div>
+
+        <p class="keypad-guide">RPN flow: build number, press <code>Enter</code>, then apply an operation from the keypad or ribbon.</p>
+
+        <div class="keys" id="keypad">
+          <button class="op" data-action="div">\</button>
+          <button class="op" data-action="mul">X</button>
+          <button class="op" data-action="sub">-</button>
+          <button class="op" data-action="add">+</button>
+
+          <button data-digit="7">7</button>
+          <button data-digit="8">8</button>
+          <button data-digit="9">9</button>
+          <button class="danger" data-action="clear-entry">clear entry</button>
+
+          <button data-digit="4">4</button>
+          <button data-digit="5">5</button>
+          <button data-digit="6">6</button>
+          <button class="danger" data-action="clear-all">clear all</button>
+
+          <button data-digit="1">1</button>
+          <button data-digit="2">2</button>
+          <button data-digit="3">3</button>
+          <button class="fn" data-action="undo">undo</button>
+
+          <button data-digit="0">0</button>
+          <button data-action="decimal">.</button>
+          <button class="fn" data-action="toggle-sign">+/-</button>
+          <button class="fn" data-action="insert-exp">EXP</button>
+
+          <button class="fn" data-action="swap">swap</button>
+          <button class="fn" data-action="rot">rotate</button>
+          <button class="fn" data-action="drop">drop</button>
+          <button class="fn" data-action="dup">dup</button>
+
+          <button class="fn bottom-wide" data-action="enter">enter</button>
+        </div>
+
+        <section class="panel banner-panel" aria-label="Banner advertisement placeholder">
+          <div class="banner-slot">
+            <img src="./Post_Fix_Pro.png" alt="Advertisement placeholder icon">
+          </div>
+        </section>
+      </section>
+
+      <aside class="panel stack-panel">
+        <div class="stack-topline">
+          <h2 class="stack-title">Stack</h2>
+          <span class="status-chip" id="stack-angle-chip">RAD</span>
+        </div>
+        <p id="stack-summary" class="stack-summary"></p>
+        <ol id="stack-list" class="stack"></ol>
+        <div class="stack-brand">
+          <img src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
+          <span>Post Fix Pro</span>
+        </div>
+      </aside>
+    </section>
   </main>
-  <div class="help-modal" id="help-modal" aria-hidden="true">
-    <div class="help-dialog" role="dialog" aria-modal="true" aria-label="Calculator help">
-      <div class="help-header">
-        <span>Calculator Help</span>
-        <button class="danger help-btn" id="help-close-btn" type="button">close</button>
+
+  <div class="modal" id="matrix-builder-modal" aria-hidden="true">
+    <div class="panel modal-dialog" role="dialog" aria-modal="true" aria-label="Matrix Builder">
+      <div class="modal-header">
+        <span>Matrix Builder</span>
+        <button class="danger" type="button" id="matrix-builder-close-btn">close</button>
       </div>
-      <iframe class="help-frame" id="help-frame" title="Calculator Help" loading="lazy"></iframe>
+      <div class="modal-body">
+        <div class="matrix-grid">
+          <label>
+            Matrix entry
+            <textarea id="matrix-a-input" placeholder="1 2&#10;3 4"></textarea>
+          </label>
+          <div class="field-stack">
+            <label>
+              Rows / columns
+              <div class="matrix-size-row">
+                <input id="matrix-a-rows" type="number" min="1" step="1" value="2" aria-label="Matrix rows">
+                <input id="matrix-a-cols" type="number" min="1" step="1" value="2" aria-label="Matrix columns">
+                <button class="fn" id="apply-a-size-btn" type="button">apply_size</button>
+              </div>
+            </label>
+            <label>
+              Identity size
+              <div class="identity-row">
+                <input id="identity-size-input" type="number" min="1" step="1" value="3" aria-label="Identity size">
+                <button class="fn" id="push-identity-btn" type="button">push_identity</button>
+              </div>
+            </label>
+            <input id="matrix-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import matrix CSV">
+          </div>
+        </div>
+
+        <div class="matrix-actions">
+          <button class="fn" id="push-a-btn" type="button">push_matrix</button>
+          <button class="fn" id="preset-a-btn" type="button">preset_matrix</button>
+          <button class="fn" id="import-csv-btn" type="button">import_csv</button>
+          <button class="fn" id="export-csv-btn" type="button">export_csv</button>
+          <button class="fn" id="hstack-btn" type="button">hstack</button>
+          <button class="fn" id="vstack-btn" type="button">vstack</button>
+          <button class="fn" id="hravel-btn" type="button">hravel</button>
+          <button class="fn" id="vravel-btn" type="button">vravel</button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="modal" id="help-modal" aria-hidden="true">
+    <div class="panel modal-dialog" role="dialog" aria-modal="true" aria-label="Calculator help">
+      <div class="modal-header">
+        <span>Calculator Help</span>
+        <button class="danger" type="button" id="help-close-btn">close</button>
+      </div>
+      <div class="modal-body">
+        <iframe class="help-frame" id="help-frame" title="Calculator Help" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
   <div id="button-tooltip" class="button-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <script src="./pkg/webcalculator_backend.js"></script>
@@ -1082,11 +1083,18 @@
     const entryEditInput = document.getElementById("entry-edit-input");
     const errorDisplay = document.getElementById("error-display");
     const angleIndicator = document.getElementById("angle-indicator");
+    const stackAngleChip = document.getElementById("stack-angle-chip");
+    const displayIndicator = document.getElementById("display-indicator");
+    const displayModeBadge = document.getElementById("display-mode-badge");
+    const precisionBadge = document.getElementById("precision-badge");
     const stackList = document.getElementById("stack-list");
     const stackVisibleCountInput = document.getElementById("stack-visible-count");
     const stackSummary = document.getElementById("stack-summary");
     const runtimeHint = document.getElementById("runtime-hint");
     const keypad = document.getElementById("keypad");
+    const matrixBuilderModal = document.getElementById("matrix-builder-modal");
+    const matrixBuilderOpenBtn = document.getElementById("matrix-builder-open-btn");
+    const matrixBuilderCloseBtn = document.getElementById("matrix-builder-close-btn");
     const matrixAInput = document.getElementById("matrix-a-input");
     const matrixARowsInput = document.getElementById("matrix-a-rows");
     const matrixAColsInput = document.getElementById("matrix-a-cols");
@@ -1110,16 +1118,16 @@
     const memoryStoreBtn = document.getElementById("memory-store-btn");
     const memoryRecallBtn = document.getElementById("memory-recall-btn");
     const memoryClearBtn = document.getElementById("memory-clear-btn");
-    const helpOpenBtn = document.getElementById("help-open-btn");
+    const displayModeSelect = document.getElementById("display-mode-select");
+    const precisionInput = document.getElementById("precision-input");
+    const helpRibbonBtn = document.getElementById("help-ribbon-btn");
     const helpCloseBtn = document.getElementById("help-close-btn");
     const helpModal = document.getElementById("help-modal");
     const helpFrame = document.getElementById("help-frame");
+    const ribbonDropdown = document.getElementById("ribbon-dropdown");
+    const ribbonButtons = Array.from(document.querySelectorAll(".ribbon-tab[data-ribbon-target]"));
+    const ribbonPanels = Array.from(document.querySelectorAll(".ribbon-panel[data-ribbon-panel]"));
     const buttonTooltip = document.getElementById("button-tooltip");
-    const opsPopout = document.getElementById("ops-popout");
-    const opsPopoutTitle = document.getElementById("ops-popout-title");
-    const opsPopoutCloseBtn = document.getElementById("ops-popout-close");
-    const opsTabButtons = Array.from(document.querySelectorAll(".tab-btn[data-tab-target]"));
-    const opsPanels = Array.from(document.querySelectorAll(".ops-panel[data-tab-panel]"));
 
     let wasmCalc = null;
     let entryBuffer = "";
@@ -1127,6 +1135,13 @@
     let pendingCommand = null;
     let hypMode = false;
     let visibleStackFrames = 4;
+    let helpLoaded = false;
+    let isEntryEditing = false;
+    let activeRibbon = null;
+    let tooltipMap = new Map();
+    let tooltipTimer = null;
+    let tooltipTarget = null;
+    const tooltipDelayMs = 2000;
     const stackRoleLabels = new Map();
     const decompositionRoleMap = {
       qr: ["Q", "R"],
@@ -1134,16 +1149,8 @@
       svd: ["U", "S", "Vt"],
       evd: ["V", "D"],
     };
-    let helpLoaded = false;
-    let isEntryEditing = false;
-    let tooltipMap = new Map();
-    let tooltipTimer = null;
-    let tooltipTarget = null;
-    let activeOpsTab = null;
-    const tooltipDelayMs = 2000;
     const tooltipActionKeyMap = {
       "toggle-angle": "deg_rad",
-      "pick-top-index": "pick",
       "clear-entry": "clear_entry",
       "clear-all": "clear_all",
       "toggle-sign": "+/-",
@@ -1167,6 +1174,7 @@
       "norm-p": "norm_p",
       "mat-exp": "mat_exp",
       "mat-pow": "mat_pow",
+      "stack-vec": "stack_vec",
       "undo": "undo",
       "const-euler-gamma": "γ",
       "const-psi": "ψ",
@@ -1180,8 +1188,8 @@
       "const-qe": "q_e",
     };
     const tooltipIdKeyMap = {
-      "help-open-btn": "help",
-      "help-close-btn": "close",
+      "help-ribbon-btn": "help",
+      "matrix-builder-open-btn": "push_matrix",
       "apply-a-size-btn": "apply_size",
       "push-a-btn": "push_matrix",
       "preset-a-btn": "preset_matrix",
@@ -1297,12 +1305,8 @@
 
     function installButtonTooltips() {
       document.querySelectorAll("button").forEach((button) => {
-        button.addEventListener("mouseenter", () => {
-          scheduleButtonTooltip(button);
-        });
-        button.addEventListener("mouseleave", () => {
-          hideButtonTooltip();
-        });
+        button.addEventListener("mouseenter", () => scheduleButtonTooltip(button));
+        button.addEventListener("mouseleave", () => hideButtonTooltip());
       });
       window.addEventListener("scroll", () => {
         if (tooltipTarget && buttonTooltip.classList.contains("show")) {
@@ -1316,58 +1320,6 @@
       });
     }
 
-    function closeOpsPopout() {
-      opsPopout.classList.add("closed");
-      opsTabButtons.forEach((button) => {
-        button.classList.remove("active");
-        button.setAttribute("aria-selected", "false");
-      });
-      activeOpsTab = null;
-    }
-
-    function openOpsTab(tabId, options = {}) {
-      const { toggle = false } = options;
-      const panel = opsPanels.find((candidate) => candidate.dataset.tabPanel === tabId);
-      if (!panel) return;
-      const isOpen = !opsPopout.classList.contains("closed");
-      if (toggle && isOpen && activeOpsTab === tabId) {
-        closeOpsPopout();
-        return;
-      }
-
-      activeOpsTab = tabId;
-      opsPanels.forEach((candidate) => {
-        candidate.classList.toggle("active", candidate.dataset.tabPanel === tabId);
-      });
-      opsTabButtons.forEach((button) => {
-        const selected = button.dataset.tabTarget === tabId;
-        button.classList.toggle("active", selected);
-        button.setAttribute("aria-selected", selected ? "true" : "false");
-      });
-      opsPopoutTitle.textContent = panel.dataset.tabLabel || "Operations";
-      opsPopout.classList.remove("closed");
-    }
-
-    function setupOpsTabs() {
-      opsTabButtons.forEach((button) => {
-        button.setAttribute("aria-selected", "false");
-        button.addEventListener("click", () => {
-          openOpsTab(button.dataset.tabTarget, { toggle: true });
-        });
-      });
-      opsPopoutCloseBtn.addEventListener("click", () => {
-        closeOpsPopout();
-      });
-
-      window.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !helpModal.classList.contains("open")) {
-          closeOpsPopout();
-        }
-      });
-
-      closeOpsPopout();
-    }
-
     function setError(message) {
       if (!message) {
         errorDisplay.textContent = "";
@@ -1378,28 +1330,63 @@
       errorDisplay.classList.remove("ok");
     }
 
+    function trimZeros(text) {
+      return String(text)
+        .replace(/(\.\d*?[1-9])0+$/, "$1")
+        .replace(/\.0+$/, "")
+        .replace(/e\+?(-?)0*(\d+)/i, "e$1$2");
+    }
+
+    function clampPrecision(value) {
+      const numeric = Number(value);
+      if (!Number.isInteger(numeric)) return 6;
+      return Math.min(12, Math.max(0, numeric));
+    }
+
+    function formatRealNumber(value, state = lastState) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return String(number);
+      if (Math.abs(number) < 1e-12) return "0";
+      const mode = String(state?.display_mode || "fix").toLowerCase();
+      const precision = clampPrecision(state?.precision ?? 6);
+
+      if (mode === "sci") {
+        return trimZeros(number.toExponential(precision));
+      }
+
+      if (mode === "eng") {
+        const abs = Math.abs(number);
+        const exponent = abs === 0 ? 0 : Math.floor(Math.log10(abs) / 3) * 3;
+        const mantissa = number / Math.pow(10, exponent);
+        const suffix = exponent >= 0 ? `e+${exponent}` : `e${exponent}`;
+        return `${trimZeros(mantissa.toFixed(precision))}${suffix}`;
+      }
+
+      return trimZeros(number.toFixed(precision));
+    }
+
+    function formatComplexEntry(re, im, state = lastState) {
+      const real = formatRealNumber(re, state);
+      const imag = formatRealNumber(Math.abs(im), state);
+      if (Math.abs(im) < 1e-12) return real;
+      if (Math.abs(re) < 1e-12) return `${formatRealNumber(im, state)}i`;
+      const sign = im >= 0 ? "+" : "-";
+      return `${real} ${sign} ${imag}i`;
+    }
+
     function formatApiValue(value) {
       if (!value || !value.type) return "?";
-      if (value.type === "real") return Number(value.value).toString();
-      if (value.type === "complex") {
-        const re = Number(value.re).toString();
-        const im = Number(value.im).toString();
-        return `${re} + ${im}i`;
-      }
+      if (value.type === "real") return formatRealNumber(value.value);
+      if (value.type === "complex") return formatComplexEntry(value.re, value.im);
       if (value.type === "matrix") {
-        const formatComplexEntry = (entry) => {
-          const re = Number(entry?.re || 0);
-          const im = Number(entry?.im || 0);
-          if (Math.abs(im) < 1e-12) return re.toString();
-          if (Math.abs(re) < 1e-12) return `${im.toString()}i`;
-          const sign = im >= 0 ? "+" : "-";
-          return `${re.toString()} ${sign} ${Math.abs(im).toString()}i`;
-        };
         const rows = [];
         for (let r = 0; r < value.rows; r += 1) {
           const start = r * value.cols;
           const end = start + value.cols;
-          const row = (value.data || []).slice(start, end).map(formatComplexEntry).join(", ");
+          const row = (value.data || [])
+            .slice(start, end)
+            .map((entry) => formatComplexEntry(Number(entry?.re || 0), Number(entry?.im || 0)))
+            .join(", ");
           rows.push(`[${row}]`);
         }
         return `${value.rows}x${value.cols} ${rows.join(" ")}`;
@@ -1415,11 +1402,22 @@
       clearStackRoleLabels();
       const roles = decompositionRoleMap[methodName];
       const stackLength = state?.stack?.length || 0;
-      if (!roles || stackLength <= 0 || stackLength < roles.length) return;
+      if (!roles || stackLength < roles.length) return;
       const start = stackLength - roles.length;
       roles.forEach((role, index) => {
         stackRoleLabels.set(start + index, role);
       });
+    }
+
+    function syncPreferenceControls(state) {
+      if (!state) return;
+      visibleStackFrames = Math.min(64, Math.max(1, Number(visibleStackFrames || 4)));
+      stackVisibleCountInput.value = String(visibleStackFrames);
+      displayModeSelect.value = String(state.display_mode || "fix").toLowerCase();
+      precisionInput.value = String(clampPrecision(state.precision));
+      displayIndicator.textContent = `${String(state.display_mode || "fix").toUpperCase()} ${clampPrecision(state.precision)}`;
+      displayModeBadge.textContent = String(state.display_mode || "fix").toUpperCase();
+      precisionBadge.textContent = `P${clampPrecision(state.precision)}`;
     }
 
     function renderState(state) {
@@ -1427,7 +1425,11 @@
       if (!isEntryEditing) {
         entryDisplay.textContent = state.entry_buffer || "0";
       }
-      angleIndicator.textContent = String(state.angle_mode || "rad").toUpperCase();
+      const angleText = String(state.angle_mode || "rad").toUpperCase();
+      angleIndicator.textContent = angleText;
+      stackAngleChip.textContent = angleText;
+      syncPreferenceControls(state);
+
       stackList.innerHTML = "";
       const bottomFirst = [...(state.stack || [])];
       const startIndex = Math.max(0, bottomFirst.length - visibleStackFrames);
@@ -1435,6 +1437,7 @@
       const hiddenCount = startIndex;
       const leadingNullFrames = Math.max(0, visibleStackFrames - visibleValues.length);
       stackSummary.textContent = `showing ${visibleStackFrames} frames (${hiddenCount} hidden)`;
+
       for (let slot = 0; slot < visibleStackFrames; slot += 1) {
         const valueIdx = slot - leadingNullFrames;
         const value = valueIdx >= 0 ? visibleValues[valueIdx] : null;
@@ -1460,19 +1463,15 @@
       }
     }
 
-    function applyVisibleStackCountFromInput() {
-      const raw = Number(stackVisibleCountInput.value);
-      const clamped = Number.isInteger(raw) ? Math.min(64, Math.max(1, raw)) : visibleStackFrames;
-      visibleStackFrames = clamped;
-      stackVisibleCountInput.value = String(clamped);
-      if (lastState) renderState(lastState);
-    }
-
     function parseResponse(jsonText) {
       try {
         return JSON.parse(jsonText);
       } catch (_) {
-        return { ok: false, state: lastState || { stack: [], entry_buffer: "" }, error: { message: "invalid JSON from runtime" } };
+        return {
+          ok: false,
+          state: lastState || { stack: [], entry_buffer: "", angle_mode: "rad", display_mode: "fix", precision: 6 },
+          error: { message: "invalid JSON from runtime" }
+        };
       }
     }
 
@@ -1921,18 +1920,88 @@
       hypToggleBtn.classList.toggle("active", hypMode);
     }
 
+    function closeRibbon() {
+      ribbonDropdown.classList.add("closed");
+      ribbonButtons.forEach((button) => button.classList.remove("active"));
+      ribbonPanels.forEach((panel) => panel.classList.remove("active"));
+      activeRibbon = null;
+    }
+
+    function openRibbon(target) {
+      const panel = ribbonPanels.find((candidate) => candidate.dataset.ribbonPanel === target);
+      if (!panel) return;
+      ribbonDropdown.classList.remove("closed");
+      ribbonButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.ribbonTarget === target);
+      });
+      ribbonPanels.forEach((candidate) => {
+        candidate.classList.toggle("active", candidate.dataset.ribbonPanel === target);
+      });
+      activeRibbon = target;
+    }
+
+    function toggleRibbon(target) {
+      if (activeRibbon === target && !ribbonDropdown.classList.contains("closed")) {
+        closeRibbon();
+        return;
+      }
+      openRibbon(target);
+    }
+
+    function openModal(modal) {
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
     function openHelp() {
       if (!helpLoaded) {
         helpFrame.src = "./help.md";
         helpLoaded = true;
       }
-      helpModal.classList.add("open");
-      helpModal.setAttribute("aria-hidden", "false");
+      openModal(helpModal);
     }
 
     function closeHelp() {
-      helpModal.classList.remove("open");
-      helpModal.setAttribute("aria-hidden", "true");
+      closeModal(helpModal);
+    }
+
+    function openMatrixBuilder() {
+      openModal(matrixBuilderModal);
+    }
+
+    function closeMatrixBuilder() {
+      closeModal(matrixBuilderModal);
+    }
+
+    function applyVisibleStackCountFromInput() {
+      const raw = Number(stackVisibleCountInput.value);
+      const clamped = Number.isInteger(raw) ? Math.min(64, Math.max(1, raw)) : visibleStackFrames;
+      visibleStackFrames = clamped;
+      stackVisibleCountInput.value = String(clamped);
+      if (lastState) renderState(lastState);
+    }
+
+    function applyDisplayModePreference() {
+      if (!wasmCalc) return;
+      const value = String(displayModeSelect.value || "fix").toLowerCase();
+      const methodMap = {
+        fix: "set_display_mode_fix",
+        sci: "set_display_mode_sci",
+        eng: "set_display_mode_eng",
+      };
+      call(methodMap[value] || "set_display_mode_fix");
+    }
+
+    function applyPrecisionPreference() {
+      if (!wasmCalc) return;
+      const precision = clampPrecision(precisionInput.value);
+      precisionInput.value = String(precision);
+      call("set_precision", precision);
     }
 
     function handleAction(action) {
@@ -1979,7 +2048,6 @@
         call("clear_all");
         return;
       }
-
       if (action === "toggle-angle") {
         const mode = String(lastState?.angle_mode || "rad").toLowerCase();
         if (mode === "deg") call("set_angle_mode_rad");
@@ -2018,6 +2086,7 @@
         call("push_e");
         return;
       }
+
       const constantMap = {
         "const-euler-gamma": 0.5772156649015329,
         "const-psi": 1.618033988749895,
@@ -2139,13 +2208,34 @@
         quart: "quart",
         max: "max_value",
         min: "min_value",
-        undo: "undo"
+        "stack-vec": "stack_vec",
       };
       const method = opMap[action];
       if (!method) return;
       if (!commitEntryIfNeeded()) return;
       call(method);
     }
+
+    function pushIdentityFromInput() {
+      const size = Number(identitySizeInput.value);
+      if (!Number.isInteger(size) || size <= 0) {
+        setError("identity size must be a positive integer");
+        return;
+      }
+      call("push_identity", size);
+    }
+
+    ribbonButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        toggleRibbon(button.dataset.ribbonTarget);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!activeRibbon) return;
+      const withinHeader = event.target.closest(".top-shell");
+      if (!withinHeader) closeRibbon();
+    });
 
     keypad.addEventListener("click", (event) => {
       const button = event.target.closest("button");
@@ -2159,10 +2249,7 @@
       handleAction(button.dataset.action);
     });
 
-    entryDisplay.addEventListener("click", () => {
-      beginScalarEntryEdit();
-    });
-
+    entryDisplay.addEventListener("click", () => beginScalarEntryEdit());
     entryDisplay.addEventListener("touchstart", (event) => {
       event.preventDefault();
       beginScalarEntryEdit();
@@ -2178,16 +2265,24 @@
       }
     });
 
-    entryEditInput.addEventListener("blur", () => {
-      endScalarEntryEdit(false);
-    });
+    entryEditInput.addEventListener("blur", () => endScalarEntryEdit(false));
 
     advancedActionPanels.forEach((panel) => {
       panel.addEventListener("click", (event) => {
         const button = event.target.closest("button");
         if (!button) return;
         handleAction(button.dataset.action);
+        closeRibbon();
       });
+    });
+
+    matrixBuilderOpenBtn.addEventListener("click", () => {
+      openMatrixBuilder();
+      closeRibbon();
+    });
+    matrixBuilderCloseBtn.addEventListener("click", () => closeMatrixBuilder());
+    matrixBuilderModal.addEventListener("click", (event) => {
+      if (event.target === matrixBuilderModal) closeMatrixBuilder();
     });
 
     pushABtn.addEventListener("click", () => {
@@ -2212,9 +2307,7 @@
       setError("");
     });
 
-    importCsvBtn.addEventListener("click", () => {
-      matrixCsvInput.click();
-    });
+    importCsvBtn.addEventListener("click", () => matrixCsvInput.click());
 
     matrixCsvInput.addEventListener("change", async (event) => {
       const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
@@ -2229,36 +2322,24 @@
       }
     });
 
-    exportCsvBtn.addEventListener("click", () => {
-      exportTopMatrixToCsv();
-    });
-
-    applyASizeBtn.addEventListener("click", () => {
-      applyMatrixSize(matrixAInput, matrixARowsInput, matrixAColsInput, "Matrix Entry");
-    });
-
-    pushIdentityBtn.addEventListener("click", () => {
-      presetIdentityInEntry();
-    });
-
+    exportCsvBtn.addEventListener("click", () => exportTopMatrixToCsv());
+    applyASizeBtn.addEventListener("click", () => applyMatrixSize(matrixAInput, matrixARowsInput, matrixAColsInput, "Matrix Entry"));
+    pushIdentityBtn.addEventListener("click", () => presetIdentityInEntry());
     hstackBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       if (!commitEntryIfNeeded()) return;
       call("hstack");
     });
-
     vstackBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       if (!commitEntryIfNeeded()) return;
       call("vstack");
     });
-
     hravelBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       if (!commitEntryIfNeeded()) return;
       call("hravel");
     });
-
     vravelBtn.addEventListener("click", () => {
       if (!wasmCalc) return;
       if (!commitEntryIfNeeded()) return;
@@ -2270,6 +2351,7 @@
       const index = parseRegisterIndex();
       if (index === null) return;
       call("memory_store", index);
+      closeRibbon();
     });
 
     memoryRecallBtn.addEventListener("click", () => {
@@ -2277,6 +2359,7 @@
       const index = parseRegisterIndex();
       if (index === null) return;
       call("memory_recall", index);
+      closeRibbon();
     });
 
     memoryClearBtn.addEventListener("click", () => {
@@ -2284,32 +2367,44 @@
       const index = parseRegisterIndex();
       if (index === null) return;
       call("memory_clear", index);
+      closeRibbon();
     });
 
-    helpOpenBtn.addEventListener("click", () => {
-      openHelp();
+    stackVisibleCountInput.addEventListener("input", () => applyVisibleStackCountFromInput());
+    displayModeSelect.addEventListener("change", () => {
+      applyDisplayModePreference();
+      closeRibbon();
+    });
+    precisionInput.addEventListener("change", () => {
+      applyPrecisionPreference();
+      closeRibbon();
     });
 
-    helpCloseBtn.addEventListener("click", () => {
-      closeHelp();
-    });
-
+    helpRibbonBtn.addEventListener("click", () => openHelp());
+    helpCloseBtn.addEventListener("click", () => closeHelp());
     helpModal.addEventListener("click", (event) => {
-      if (event.target === helpModal) {
-        closeHelp();
-      }
-    });
-
-    stackVisibleCountInput.addEventListener("input", () => {
-      applyVisibleStackCountFromInput();
+      if (event.target === helpModal) closeHelp();
     });
 
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && helpModal.classList.contains("open")) {
-        event.preventDefault();
-        closeHelp();
-        return;
+      if (event.key === "Escape") {
+        if (helpModal.classList.contains("open")) {
+          event.preventDefault();
+          closeHelp();
+          return;
+        }
+        if (matrixBuilderModal.classList.contains("open")) {
+          event.preventDefault();
+          closeMatrixBuilder();
+          return;
+        }
+        if (activeRibbon) {
+          event.preventDefault();
+          closeRibbon();
+          return;
+        }
       }
+
       if (isTextEditingTarget(event.target)) {
         return;
       }
@@ -2332,6 +2427,7 @@
         }
         clearPendingCommand();
       }
+
       if (event.key.length === 1) {
         if (event.key === "+" || event.key === "-") {
           const last = entryBuffer.slice(-1);
@@ -2415,23 +2511,22 @@
 
         wasmCalc = new wasm_bindgen.WasmCalculator();
         applyHypModeUI();
-        runtimeHint.textContent = "WASM runtime loaded.";
+        runtimeHint.textContent = "WASM runtime loaded";
         const initial = JSON.parse(wasmCalc.snapshot_json());
         renderState(initial);
         setError("");
       } catch (error) {
-        runtimeHint.textContent =
-          "WASM runtime not found. Build with ./scripts/build_wasm.sh and open dist/Post_Fix_Pro.html.";
+        runtimeHint.textContent = "WASM runtime unavailable";
         setError("runtime unavailable");
         console.error(error);
-        for (const button of document.querySelectorAll("button:not(#help-open-btn):not(#help-close-btn)")) {
+        for (const button of document.querySelectorAll("button:not(#help-ribbon-btn):not(#help-close-btn)")) {
           button.disabled = true;
         }
       }
     }
 
-    setupOpsTabs();
     installButtonTooltips();
+    closeRibbon();
     boot();
   </script>
 </body>
