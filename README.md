@@ -20,7 +20,7 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 
 - `src/` Rust calculator engine and API bindings
 - `Post_Fix_Pro.html` main application UI
-- `scripts/build_wasm.sh` production build + distribution packaging
+- `scripts/package_dist_folder.sh` production build + distribution packaging
 - `docs/build_notes/` milestone notes by version
 - `docs/wasm_build.md` build and distribution notes
 - `help.md` in-app user help
@@ -37,7 +37,7 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 ### 1. Build release wasm + dist package
 
 ```bash
-./scripts/build_wasm.sh
+./scripts/package_dist_folder.sh
 ```
 
 This generates/refreshes:
@@ -82,7 +82,7 @@ cargo test
 - Rebuild wasm and refresh dist:
 
 ```bash
-./scripts/build_wasm.sh
+./scripts/package_dist_folder.sh
 ```
 
 ## Usage Notes

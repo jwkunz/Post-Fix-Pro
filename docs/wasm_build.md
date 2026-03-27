@@ -3,7 +3,7 @@
 Use the repository script:
 
 ```bash
-./scripts/build_wasm.sh
+./scripts/package_dist_folder.sh
 ```
 
 This command:
@@ -16,7 +16,7 @@ This command:
 
 ## Distribution Flow
 
-1. Run `./scripts/build_wasm.sh`
+1. Run `./scripts/package_dist_folder.sh`
 2. Zip the `dist/` folder
 3. Share the zip
 4. Recipient unzips and opens `dist/Post_Fix_Pro.html`
