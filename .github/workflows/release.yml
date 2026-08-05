@@ -28,7 +28,7 @@ jobs:
           curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
 
       - name: Build dist
-        run: ./scripts/build_wasm.sh
+        run: ./scripts/package_dist_folder.sh
 
       - name: Package dist
         run: |
