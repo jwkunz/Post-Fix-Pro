@@ -128,7 +128,8 @@
       gap: 16px;
     }
 
-    .top-shell {
+    .top-shell,
+    .bottom-shell {
       overflow: hidden;
     }
 
@@ -195,7 +196,7 @@
     }
 
     .ribbon-dropdown {
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       padding: 16px 20px 20px;
       background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(18, 28, 44, 0.98));
     }
@@ -277,42 +278,9 @@
       gap: 10px;
     }
 
-    .banner-panel {
-      min-height: 132px;
-      padding: 14px 18px;
-      display: grid;
-      gap: 12px;
-      background:
-        linear-gradient(135deg, rgba(31, 46, 69, 0.95), rgba(18, 25, 37, 0.95)),
-        var(--panel);
-    }
-
-    .banner-slot {
-      min-height: 86px;
-      border: 1px dashed rgba(114, 198, 255, 0.35);
-      border-radius: 16px;
-      background:
-        linear-gradient(135deg, rgba(114, 198, 255, 0.1), rgba(116, 224, 180, 0.07)),
-        rgba(8, 12, 20, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      overflow: hidden;
-      padding: 10px 18px;
-    }
-
-    .banner-slot img {
-      height: min(74px, 100%);
-      width: auto;
-      max-width: min(180px, 30vw);
-      object-fit: contain;
-      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
-    }
-
     .content-shell {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
+      grid-template-columns: 1fr;
       gap: 16px;
       align-items: start;
     }
@@ -408,14 +376,13 @@
       padding: 18px;
       display: grid;
       gap: 12px;
-      position: sticky;
-      top: 18px;
     }
 
     .stack-brand {
-      margin-top: 4px;
+      margin-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       padding-top: 14px;
+      padding-bottom: 18px;
       display: grid;
       justify-items: center;
       gap: 10px;
@@ -813,24 +780,73 @@
           <span id="display-indicator" class="status-chip">FIX 6</span>
         </div>
       </div>
+    </header>
 
-      <nav class="ribbon-bar" aria-label="Ribbon menu">
-        <button class="ribbon-tab" type="button" data-ribbon-target="analytic">Analytic</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="trigonometry">Trigonometry</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="special">Special</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="statistics">Statistics</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="round">Round</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="constants">Constants</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="complex">Complex</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="vector">Vector</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="matrix">Matrix</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="memory">Memory</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="scripting">Scripting</button>
-        <button class="ribbon-tab" type="button" data-ribbon-target="preferences">Preferences</button>
-        <button class="ribbon-tab" type="button" id="legal-ribbon-btn">Legal</button>
-        <button class="ribbon-tab" type="button" id="help-ribbon-btn">Help</button>
-      </nav>
+    <section class="content-shell">
+      <aside class="panel stack-panel">
+        <div class="stack-topline">
+          <h2 class="stack-title">Stack</h2>
+          <span class="status-chip" id="stack-angle-chip">RAD</span>
+        </div>
+        <p id="stack-summary" class="stack-summary"></p>
+        <ol id="stack-list" class="stack"></ol>
+      </aside>
 
+      <section class="panel calculator-panel">
+        <div class="display-shell">
+          <div class="display-meta">
+            <span>RPN entry panel</span>
+            <div class="display-status">
+              <span class="display-badge" id="display-mode-badge">FIX</span>
+              <span class="display-badge" id="precision-badge">P6</span>
+            </div>
+          </div>
+          <div id="entry-display" class="entry">0</div>
+          <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false"
+            autocomplete="off" aria-label="Scalar entry edit">
+          <div id="error-display" class="error ok"></div>
+        </div>
+
+        <p class="keypad-guide">RPN flow: build number, press <code>Enter</code>, then apply an operation from the keypad or ribbon.</p>
+
+        <div class="keys" id="keypad">
+          <button class="op" data-action="div">\</button>
+          <button class="op" data-action="mul">X</button>
+          <button class="op" data-action="sub">-</button>
+          <button class="op" data-action="add">+</button>
+
+          <button data-digit="7">7</button>
+          <button data-digit="8">8</button>
+          <button data-digit="9">9</button>
+          <button class="danger" data-action="clear-entry">clear entry</button>
+
+          <button data-digit="4">4</button>
+          <button data-digit="5">5</button>
+          <button data-digit="6">6</button>
+          <button class="danger" data-action="clear-all">clear all</button>
+
+          <button data-digit="1">1</button>
+          <button data-digit="2">2</button>
+          <button data-digit="3">3</button>
+          <button class="fn" data-action="undo">undo</button>
+
+          <button data-digit="0">0</button>
+          <button data-action="decimal">.</button>
+          <button class="fn" data-action="toggle-sign">+/-</button>
+          <button class="fn" data-action="insert-exp">EXP</button>
+
+          <button class="fn" data-action="swap">swap</button>
+          <button class="fn" data-action="rot">rotate</button>
+          <button class="fn" data-action="drop">drop</button>
+          <button class="fn" data-action="dup">dup</button>
+
+          <button class="fn bottom-wide" data-action="enter">enter</button>
+        </div>
+
+      </section>
+    </section>
+
+    <footer class="panel bottom-shell">
       <div class="ribbon-dropdown closed" id="ribbon-dropdown">
         <section class="ribbon-panel" data-ribbon-panel="analytic">
           <div class="ribbon-panel-head">
@@ -1062,80 +1078,28 @@
           </div>
         </section>
       </div>
-    </header>
 
-    <section class="content-shell">
-      <section class="panel calculator-panel">
-        <div class="display-shell">
-          <div class="display-meta">
-            <span>RPN entry panel</span>
-            <div class="display-status">
-              <span class="display-badge" id="display-mode-badge">FIX</span>
-              <span class="display-badge" id="precision-badge">P6</span>
-            </div>
-          </div>
-          <div id="entry-display" class="entry">0</div>
-          <input id="entry-edit-input" class="entry-edit hidden" type="text" inputmode="decimal" spellcheck="false"
-            autocomplete="off" aria-label="Scalar entry edit">
-          <div id="error-display" class="error ok"></div>
-        </div>
-
-        <p class="keypad-guide">RPN flow: build number, press <code>Enter</code>, then apply an operation from the keypad or ribbon.</p>
-
-        <div class="keys" id="keypad">
-          <button class="op" data-action="div">\</button>
-          <button class="op" data-action="mul">X</button>
-          <button class="op" data-action="sub">-</button>
-          <button class="op" data-action="add">+</button>
-
-          <button data-digit="7">7</button>
-          <button data-digit="8">8</button>
-          <button data-digit="9">9</button>
-          <button class="danger" data-action="clear-entry">clear entry</button>
-
-          <button data-digit="4">4</button>
-          <button data-digit="5">5</button>
-          <button data-digit="6">6</button>
-          <button class="danger" data-action="clear-all">clear all</button>
-
-          <button data-digit="1">1</button>
-          <button data-digit="2">2</button>
-          <button data-digit="3">3</button>
-          <button class="fn" data-action="undo">undo</button>
-
-          <button data-digit="0">0</button>
-          <button data-action="decimal">.</button>
-          <button class="fn" data-action="toggle-sign">+/-</button>
-          <button class="fn" data-action="insert-exp">EXP</button>
-
-          <button class="fn" data-action="swap">swap</button>
-          <button class="fn" data-action="rot">rotate</button>
-          <button class="fn" data-action="drop">drop</button>
-          <button class="fn" data-action="dup">dup</button>
-
-          <button class="fn bottom-wide" data-action="enter">enter</button>
-        </div>
-
-      </section>
-
-      <aside class="panel stack-panel">
-        <div class="stack-topline">
-          <h2 class="stack-title">Stack</h2>
-          <span class="status-chip" id="stack-angle-chip">RAD</span>
-        </div>
-        <p id="stack-summary" class="stack-summary"></p>
-        <ol id="stack-list" class="stack"></ol>
-        <section class="banner-panel" aria-label="Banner advertisement placeholder">
-          <div class="banner-slot">
-            <img src="./Post_Fix_Pro.png" alt="Advertisement placeholder icon">
-          </div>
-        </section>
-        <div class="stack-brand">
-          <img src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
-          <span>Post Fix Pro</span>
-        </div>
-      </aside>
-    </section>
+      <nav class="ribbon-bar" aria-label="Ribbon menu">
+        <button class="ribbon-tab" type="button" data-ribbon-target="analytic">Analytic</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="trigonometry">Trigonometry</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="special">Special</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="statistics">Statistics</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="round">Round</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="constants">Constants</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="complex">Complex</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="vector">Vector</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="matrix">Matrix</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="memory">Memory</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="scripting">Scripting</button>
+        <button class="ribbon-tab" type="button" data-ribbon-target="preferences">Preferences</button>
+        <button class="ribbon-tab" type="button" id="legal-ribbon-btn">Legal</button>
+        <button class="ribbon-tab" type="button" id="help-ribbon-btn">Help</button>
+      </nav>
+      <div class="stack-brand">
+        <img src="./Post_Fix_Pro.png" alt="Post Fix Pro logo">
+        <span>Post Fix Pro</span>
+      </div>
+    </footer>
   </main>
 
   <div class="modal" id="matrix-builder-modal" aria-hidden="true">
@@ -1255,7 +1219,7 @@
       </div>
       <div class="modal-body">
         <div class="legal-copy">
-          <p>Version 6.0.0</p>
+          <p>Version 6.1.0</p>
           <p>Copyright 2026 Numerius Engineering LLC</p>
           <p>For support contact numerius.engineering@gmail.com</p>
           <p>Distributed under terms of the MIT License.</p>
@@ -2461,8 +2425,20 @@
         return;
       }
       if (action === "toggle-sign") {
-        if (entryBuffer.startsWith("-")) entryBuffer = entryBuffer.slice(1);
-        else entryBuffer = entryBuffer ? `-${entryBuffer}` : "-";
+        const exponentIndex = entryBuffer.search(/[eE]/);
+        if (exponentIndex >= 0) {
+          const exponentPrefix = entryBuffer.slice(0, exponentIndex + 1);
+          const exponent = entryBuffer.slice(exponentIndex + 1);
+          entryBuffer = exponent.startsWith("-")
+            ? `${exponentPrefix}${exponent.slice(1)}`
+            : exponent.startsWith("+")
+              ? `${exponentPrefix}-${exponent.slice(1)}`
+            : `${exponentPrefix}-${exponent}`;
+        } else if (entryBuffer.startsWith("-")) {
+          entryBuffer = entryBuffer.slice(1);
+        } else {
+          entryBuffer = entryBuffer ? `-${entryBuffer}` : "-";
+        }
         syncEntry();
         return;
       }
@@ -2670,8 +2646,8 @@
 
     document.addEventListener("click", (event) => {
       if (!activeRibbon) return;
-      const withinHeader = event.target.closest(".top-shell");
-      if (!withinHeader) closeRibbon();
+      const withinMenu = event.target.closest(".bottom-shell");
+      if (!withinMenu) closeRibbon();
     });
 
     keypad.addEventListener("click", (event) => {
@@ -3049,6 +3025,10 @@
     closeRibbon();
     boot();
   </script>
+
+  <script>
+  </script>
+
 </body>
 
 </html>
