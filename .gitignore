@@ -2,3 +2,6 @@
 /dist/pkg/
 /dist/wasm_base64.js
 /dist/README.txt
+
+# Generated single-file release bundles
+/post_fix_pro_v*.html

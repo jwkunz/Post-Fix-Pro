@@ -19,12 +19,12 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 ## Repository Layout
 
 - `src/` Rust calculator engine and API bindings
-- `Post_Fix_Pro.html` main application UI
+- `Post_Fix_Pro.html` canonical UI source (edit this file)
 - `scripts/package_dist_folder.sh` production build + distribution packaging
 - `docs/build_notes/` milestone notes by version
 - `docs/wasm_build.md` build and distribution notes
 - `help.md` in-app user help
-- `dist/` distributable output
+- `dist/` generated distributable output (do not edit by hand)
 
 ## Prerequisites
 
@@ -49,6 +49,8 @@ This generates/refreshes:
 - `dist/help.md`
 - `dist/README.txt`
 
+`Post_Fix_Pro.html` is the single source of truth for the UI. The packaging script copies it to `dist/Post_Fix_Pro.html`; edit only the root file.
+
 ### 2. Run the app
 
 Primary flow:
@@ -68,6 +70,14 @@ python3 -m http.server 8000
 ```
 
 Then browse to: `http://localhost:8000`
+
+### 3. Optional single-file package
+
+```bash
+./scripts/single_file_package.sh
+```
+
+This creates `post_fix_pro_vX_Y_Z.html` at the repository root, using the version in `VERSION`. It is a generated release artifact and is intentionally not tracked by Git.
 
 ## Development Loop
 
