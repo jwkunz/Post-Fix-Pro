@@ -1,6 +1,6 @@
 # Post Fix Pro
 
-![Post_Fix_Pro Logo](Post_Fix_Pro.png)
+![Post_Fix_Pro Logo](web/Post_Fix_Pro.png)
 
 A browser-based Reverse Polish Notation (RPN) calculator with:
 
