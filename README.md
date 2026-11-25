@@ -9,6 +9,8 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 - Thin JavaScript UI wrapper
 - Dark-mode responsive interface with scalar, matrix, scientific, complex, and memory tools
 
+**Use it online:** <https://jwkunz.github.io/Post-Fix-Pro/>. That is the single-file web build, served by GitHub Pages and redeployed on every push to `master` (`.github/workflows/pages.yml`). The same build is bundled into the Android app and attached to each GitHub release.
+
 ## Highlights
 
 - Core calculator logic is implemented in Rust (`src/lib.rs`)
