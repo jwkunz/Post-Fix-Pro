@@ -18,13 +18,17 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 
 ## Repository Layout
 
-- `src/` Rust calculator engine and API bindings
-- `Post_Fix_Pro.html` canonical UI source (edit this file)
-- `scripts/package_dist_folder.sh` production build + distribution packaging
-- `docs/build_notes/` milestone notes by version
-- `docs/wasm_build.md` build and distribution notes
-- `help.md` in-app user help
-- `dist/` generated distributable output (do not edit by hand)
+- `web/` the calculator
+  - `web/src/` Rust calculator engine and API bindings
+  - `web/Post_Fix_Pro.html` canonical UI source (edit this file)
+  - `web/help.md` in-app user help
+  - `web/scripts/` wasm build, `dist/` packaging and single-file packaging
+  - `web/dist/` generated output (git-ignored)
+- `Android/` Gradle project: a WebView app that bundles the single-file build of `web/` (works offline)
+- `scripts/version.mjs` keeps the version in step everywhere
+- `VERSION` the one place the project version lives
+- `docs/` build notes, privacy policy
+- `.github/workflows/` CI (tests, single HTML, debug APK, releases) and GitHub Pages deploy
 
 ## Prerequisites
 
@@ -37,7 +41,7 @@ A browser-based Reverse Polish Notation (RPN) calculator with:
 ### 1. Build release wasm + dist package
 
 ```bash
-./scripts/package_dist_folder.sh
+cd web && ./scripts/package_dist_folder.sh
 ```
 
 This generates/refreshes:
@@ -49,23 +53,23 @@ This generates/refreshes:
 - `dist/help.md`
 - `dist/README.txt`
 
-`Post_Fix_Pro.html` is the single source of truth for the UI. The packaging script copies it to `dist/Post_Fix_Pro.html`; edit only the root file.
+`web/Post_Fix_Pro.html` is the single source of truth for the UI. The packaging script copies it to `web/dist/Post_Fix_Pro.html`; edit only that file.
 
 ### 2. Run the app
 
 Primary flow:
 
-1. Open `dist/Post_Fix_Pro.html` in your browser.
+1. Open `web/dist/Post_Fix_Pro.html` in your browser.
 
 Fallback for stricter browser file policies:
 
-1. Start a static server in `dist/`.
+1. Start a static server in `web/dist/`.
 2. Open the served `Post_Fix_Pro.html`.
 
 Example server command:
 
 ```bash
-cd dist
+cd web/dist
 python3 -m http.server 8000
 ```
 
@@ -74,25 +78,44 @@ Then browse to: `http://localhost:8000`
 ### 3. Optional single-file package
 
 ```bash
-./scripts/single_file_package.sh
+cd web && ./scripts/single_file_package.sh
 ```
 
-This creates `post_fix_pro_vX_Y_Z.html` at the repository root, using the version in `VERSION`. It is a generated release artifact and is intentionally not tracked by Git.
+This creates `web/post_fix_pro_vX_Y_Z.html`, using the version in `VERSION`. It is a generated release artifact and is intentionally not tracked by Git.
 
 ## Development Loop
 
-- Edit Rust engine/API files in `src/`
-- Edit UI in `Post_Fix_Pro.html`
+- Edit Rust engine/API files in `web/src/`
+- Edit UI in `web/Post_Fix_Pro.html`
 - Run tests:
 
 ```bash
-cargo test
+cd web && cargo test
 ```
 
 - Rebuild wasm and refresh dist:
 
 ```bash
-./scripts/package_dist_folder.sh
+cd web && ./scripts/package_dist_folder.sh
+```
+
+## Android
+
+Needs JDK 21, the Android SDK, Rust and `wasm-pack`:
+
+```bash
+cd Android
+./gradlew :app:assembleDebug     # builds web/ into one HTML file, then the APK
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Pass `-PskipWebBuild` to reuse an existing `web/post_fix_pro_v*.html`.
+
+## Versioning and releases
+
+```bash
+node scripts/version.mjs set 6.2.0   # VERSION, web/Cargo.toml, web/Cargo.lock (also update the version text in the UI HTML)
+git tag v6.2.0 && git push --tags     # CI publishes post-fix-pro-v6.2.0.html and the debug APK as a GitHub release
 ```
 
 ## Usage Notes

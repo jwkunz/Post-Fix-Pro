@@ -1,6 +1,6 @@
 # WASM Build Path
 
-Use the repository script:
+Run from the `web/` folder:
 
 ```bash
 ./scripts/package_dist_folder.sh
@@ -8,20 +8,20 @@ Use the repository script:
 
 This command:
 - runs `wasm-pack build --target no-modules --out-dir pkg`
-- copies wasm bindings to `dist/pkg/`
-- refreshes `dist/Post_Fix_Pro.html`
-- copies `help.md` to `dist/help.md`
-- generates `dist/wasm_base64.js` (embedded wasm bytes for local-file startup)
-- writes `dist/README.txt`
+- copies wasm bindings to `web/dist/pkg/`
+- refreshes `web/dist/Post_Fix_Pro.html`
+- copies `help.md` to `web/dist/help.md`
+- generates `web/dist/wasm_base64.js` (embedded wasm bytes for local-file startup)
+- writes `web/dist/README.txt`
 
 ## Distribution Flow
 
 1. Run `./scripts/package_dist_folder.sh`
-2. Zip the `dist/` folder
+2. Zip the `web/dist/` folder
 3. Share the zip
-4. Recipient unzips and opens `dist/Post_Fix_Pro.html`
+4. Recipient unzips and opens `web/dist/Post_Fix_Pro.html`
 
-Expected `dist/` contents:
+Expected `web/dist/` contents:
 - `Post_Fix_Pro.html`
 - `pkg/` (generated glue + wasm artifacts)
 - `wasm_base64.js`

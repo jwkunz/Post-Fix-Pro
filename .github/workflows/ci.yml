@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Version files agree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check VERSION, the Rust crate and (for a release) the tag
+        run: node scripts/version.mjs check "${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}"
+
+  web:
+    name: Rust tests and single-file build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: web
+      - run: cargo test
+      - name: Install wasm-pack
+        run: curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+      - name: Build the single HTML file
+        run: ./scripts/single_file_package.sh
+      - name: Check the build is one self-contained file
+        run: |
+          test "$(ls post_fix_pro_v*.html | wc -l)" = 1
+          ! grep -E '<script[^>]+src=|<link[^>]+href=' post_fix_pro_v*.html
+      - run: cp post_fix_pro_v*.html "$RUNNER_TEMP/post_fix_pro.html"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: post-fix-pro-html
+          path: ${{ runner.temp }}/post_fix_pro.html
+          if-no-files-found: error
+
+  android:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: web
+      - name: Install wasm-pack
+        run: curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build APK (Gradle builds the web page the app bundles)
+        run: ./gradlew :app:assembleDebug --no-daemon
+        working-directory: Android
+      - run: cp Android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/post-fix-pro-debug.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: post-fix-pro-apk
+          path: ${{ runner.temp }}/post-fix-pro-debug.apk
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [version, web, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mv artifacts/post_fix_pro.html "post-fix-pro-$TAG.html"
+          mv artifacts/post-fix-pro-debug.apk "post-fix-pro-$TAG-debug.apk"
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Post Fix Pro $TAG" --generate-notes \
+            "post-fix-pro-$TAG.html#Post Fix Pro (single HTML file)" \
+            "post-fix-pro-$TAG-debug.apk#Post Fix Pro (Android debug APK)"

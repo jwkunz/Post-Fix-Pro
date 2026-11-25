@@ -16,7 +16,7 @@ mkdir -p dist/pkg
 cp -r pkg/. dist/pkg/
 cp Post_Fix_Pro.html dist/Post_Fix_Pro.html
 cp Post_Fix_Pro.png dist/Post_Fix_Pro.png
-cp VERSION dist/VERSION
+cp ../VERSION dist/VERSION
 cp help.md dist/help.md
 rm -f dist/index.html
 

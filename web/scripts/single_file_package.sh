@@ -63,6 +63,7 @@ if [[ -z "${VERSION}" ]]; then
   exit 1
 fi
 OUTPUT_PATH="${ROOT_DIR}/post_fix_pro_v${VERSION//./_}.html"
+rm -f "${ROOT_DIR}"/post_fix_pro_v*.html
 
 TMP_DIR="$(mktemp -d)"
 cleanup() {
