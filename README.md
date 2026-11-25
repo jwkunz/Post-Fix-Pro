@@ -11,6 +11,26 @@ A Reverse Polish Notation (RPN) calculator with scalar, matrix, scientific, comp
 | **[jwkunz.github.io/Post-Fix-Pro](https://jwkunz.github.io/Post-Fix-Pro/)** | The web app, always the latest `master` (deployed by GitHub Pages) |
 | **[Releases](https://github.com/jwkunz/Post-Fix-Pro/releases)** | `post-fix-pro-vX.Y.Z.html`, a single self-contained file you can save and open locally, and `post-fix-pro-vX.Y.Z-debug.apk`, the Android app |
 
+## Calculator features
+
+Post Fix Pro is a stack calculator: push values, then apply operators. Operands are typed on the scalar keypad or built in the matrix editor, and `undo` reverses the last operation. Real, complex and matrix values share one stack. The in-app **Help** button has the full reference (also in [web/help.md](web/help.md)).
+
+- **Stack:** `enter`, `drop`, `dup`, `swap`, `rot`, `pick`, undo, and a degrees/radians toggle.
+- **Arithmetic:** add, subtract, multiply, divide, reciprocal, square, roots, powers, `exp`/`ln`, base-2 and base-10 logs, arbitrary-base log, percent and signum.
+- **Trigonometry:** sin, cos, tan, sec, csc and cot with their inverses, a hyperbolic mode, `atan2`, and degree/radian conversion.
+- **Complex numbers:** magnitude, phase, conjugate, real and imaginary parts, and composing or decomposing in rectangular, polar and normalized-polar form.
+- **Matrices and vectors:**
+  - Build them in a matrix editor (with presets and identity), import and export CSV, and stack or unstack with `hstack`, `vstack`, `hravel` and `vravel`.
+  - Operators: dot and cross products, determinant, trace, transpose, inverse, Hermitian, matrix power and exponential, p-norms, and element-wise multiply and divide.
+  - Linear solves: `A x = B` and least squares.
+  - Decompositions: QR, LU, SVD and eigendecomposition.
+- **Special functions and number theory:** factorial, combinations, permutations, modulo, GCD, LCM, gamma, error functions, Bessel J0 and I0, and sinc.
+- **Statistics:** mean, median, mode, quartiles, variance, population and sample standard deviation, min, max and random numbers.
+- **Rounding:** round, floor, ceiling and decimal part.
+- **Constants:** pi, e, Euler-Mascheroni, golden ratio, speed of light, Avogadro, Boltzmann, reduced Planck, vacuum permittivity and permeability, gravitational constant and electron charge.
+- **Memory:** store, recall and clear values in registers.
+- **Scripting:** run RPN command streams with comments, real, complex and matrix literals, and symbol aliases such as `+` and `*`. Errors report the line and column. See the Scripting Guide in the help.
+
 ## Repository layout
 
 ```
@@ -80,11 +100,6 @@ git tag v6.2.0 && git push origin v6.2.0
 ```
 
 CI refuses to release if the tag doesn't match `VERSION`. The Android `versionName` and `versionCode` (`major*10000 + minor*100 + patch`) are derived from `VERSION`.
-
-## Using the calculator
-
-- Enter a number, press `Enter`, then apply operators. The stack shows bottom-first with the top highlighted.
-- The in-app **Help** button opens `web/help.md`, which covers every keypad and panel, and the scripting guide.
 
 ## Privacy
 
