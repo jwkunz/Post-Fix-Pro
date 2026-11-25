@@ -14,7 +14,7 @@ android {
 
     sourceSets {
         getByName("main") {
-            assets.srcDir(layout.buildDirectory.dir("generated/web-assets"))
+            assets.srcDir("build/generated/web-assets")
         }
     }
 
